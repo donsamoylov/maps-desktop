@@ -1,4 +1,4 @@
-// Перехватывает переходы на Google Карты и передаёт адрес приложению Maps Desktop
+// Перехватывает переходы на Google Карты и передает адрес приложению Maps Desktop
 // через его схему mapsdesktop://open?url=… . Кнопка расширения включает и выключает перехват.
 
 const isMapsLink = (raw) => {
@@ -44,11 +44,11 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (d) => {
   const handoff = 'mapsdesktop://open?url=' + encodeURIComponent(d.url);
   const blank = !tab.url || tab.url === 'about:blank' || tab.url.startsWith('chrome://newtab');
   await chrome.tabs.update(d.tabId, { url: handoff });
-  // Ссылка открылась в новой пустой вкладке — закрываем её, приложение уже показывает карту.
+  // Ссылка открылась в новой пустой вкладке — закрываем ее, приложение уже показывает карту.
   if (blank) setTimeout(() => chrome.tabs.remove(d.tabId).catch(() => {}), 1500);
 });
 
-// Если пользователь всё-таки остался на картах во вкладке — дальше не мешаем.
+// Если пользователь все-таки остался на картах во вкладке — дальше не мешаем.
 chrome.webNavigation.onCommitted.addListener((d) => {
   if (d.frameId !== 0) return;
   if (isMapsLink(d.url)) stayOnMaps.add(d.tabId); else stayOnMaps.delete(d.tabId);

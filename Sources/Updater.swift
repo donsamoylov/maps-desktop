@@ -3,7 +3,7 @@ import CryptoKit
 
 /// Обновления из релизов GitHub. В релизе лежат MapsDesktop.zip и MapsDesktop.zip.sig — подпись архива
 /// ключом Ed25519; публичная половина ключа зашита в Info.plist (NMUpdatePublicKey), поэтому
-/// подменённый архив не установится. Проверка — при запуске и раз в сутки, вручную — из меню.
+/// подмененный архив не установится. Проверка — при запуске и раз в сутки, вручную — из меню.
 final class Updater: NSObject {
     static let shared = Updater()
 
@@ -105,7 +105,7 @@ final class Updater: NSObject {
         }
     }
 
-    /// Старое приложение заменяется новым уже после выхода: скрипт ждёт завершения процесса.
+    /// Старое приложение заменяется новым уже после выхода: скрипт ждет завершения процесса.
     private static func replaceAndRelaunch(with newApp: URL) {
         let target = Bundle.main.bundleURL.path
         let script = """

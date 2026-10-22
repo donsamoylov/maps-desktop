@@ -51,6 +51,9 @@ jobs:
           SIGN_ID: ${{ startsWith(github.ref, 'refs/tags/v') && 'Maps Desktop Developer' || '-' }}
         run: ./build.sh --zip
 
+      - name: Pack Chrome extension
+        run: tools/pack_extension.sh
+
       - name: Sign update archive
         if: startsWith(github.ref, 'refs/tags/v')
         env:
@@ -61,12 +64,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MapsDesktop-${{ steps.version.outputs.version }}
-          path: build/MapsDesktop.zip
+          path: |
+            build/MapsDesktop.zip
+            build/maps-desktop-chrome-extension.zip
 
       - name: Publish release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" build/MapsDesktop.zip build/MapsDesktop.zip.sig \
+          gh release create "$GITHUB_REF_NAME" build/MapsDesktop.zip build/MapsDesktop.zip.sig build/maps-desktop-chrome-extension.zip \
             --title "Maps Desktop ${{ steps.version.outputs.version }}" --generate-notes

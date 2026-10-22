@@ -3,10 +3,8 @@
 "Open Settings" = "Open Settings";
 "Not Now" = "Not Now";
 "Cancel" = "Cancel";
-"Links" = "Links";
 "Theme" = "Theme";
 "About Maps Desktop" = "About Maps Desktop";
-"Link Handling" = "Link Handling";
 "Hide Maps Desktop" = "Hide Maps Desktop";
 "Hide Others" = "Hide Others";
 "Quit Maps Desktop" = "Quit Maps Desktop";
@@ -37,18 +35,10 @@
 "Window" = "Window";
 "Minimize" = "Minimize";
 "Zoom" = "Zoom";
-"Stop Handling Map Links" = "Stop Handling Map Links";
-"Open Map Links Here" = "Open Map Links Here";
-"Open other links in:" = "Open other links in:";
 "System" = "System";
 "Light" = "Light";
 "Dark" = "Dark";
-"Couldn’t change the default browser" = "Couldn’t change the default browser";
-"Map links are no longer handled" = "Map links are no longer handled";
-"Map links now open here" = "Map links now open here";
 "Allow Maps Desktop to use your location in System Settings ▸ Privacy & Security ▸ Location Services." = "Allow Maps Desktop to use your location in System Settings ▸ Privacy & Security ▸ Location Services.";
-"%@ is the default browser again." = "%@ is the default browser again.";
-"Maps Desktop is now the default browser, but keeps only map links. All other links go straight to %@." = "Maps Desktop is now the default browser, but keeps only map links. All other links go straight to %@.";
 "Check for Updates…" = "Check for Updates…";
 "Couldn’t check for updates" = "Couldn’t check for updates";
 "You’re up to date" = "You’re up to date";
@@ -61,3 +51,4 @@
 "The downloaded update is not Maps Desktop." = "The downloaded update is not Maps Desktop.";
 "Update failed" = "Update failed";
 "Couldn’t unpack the update." = "Couldn’t unpack the update.";
+"Install Chrome Extension…" = "Install Chrome Extension…";

@@ -1,7 +1,7 @@
 import AppKit
 import CoreLocation
 
-/// Доступ к геолокации для страницы Google Maps. WebKit отдаёт странице координаты, только если
+/// Доступ к геолокации для страницы Google Maps. WebKit отдает странице координаты, только если
 /// само приложение получило разрешение macOS, поэтому при первом запросе страницы спрашиваем систему.
 final class LocationAccess: NSObject, CLLocationManagerDelegate {
     static let shared = LocationAccess()
@@ -68,7 +68,7 @@ final class LocationAccess: NSObject, CLLocationManagerDelegate {
         if !answer { explainDenied() }
     }
 
-    /// Один раз за запуск подсказываем, где включить доступ, если macOS его не даёт.
+    /// Один раз за запуск подсказываем, где включить доступ, если macOS его не дает.
     private func explainDenied() {
         guard !warned else { return }
         warned = true

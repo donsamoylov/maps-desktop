@@ -15,8 +15,8 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
         webView = MapWebView(frame: .zero, configuration: config)
         webView.allowsBackForwardNavigationGestures = false   // иначе горизонтальный свайп по трекпаду уходит в «назад» вместо сдвига карты
         webView.allowsMagnification = false                // щипок должен масштабировать карту, а не страницу
-        // Пока страница грузится, WebKit заливает окно белым — в тёмной теме это вспышка. Свой фон не
-        // рисуем: под страницей виден фон окна (тёмный в тёмной теме).
+        // Пока страница грузится, WebKit заливает окно белым — в темной теме это вспышка. Свой фон не
+        // рисуем: под страницей виден фон окна (темный в темной теме).
         webView.setValue(false, forKey: "drawsBackground")
 
         let window = GestureWindow(
@@ -24,7 +24,7 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
             styleMask: [.titled, .closable, .miniaturizable, .resizable],   // обычный заголовок: кнопки окна не ложатся на поиск Google
             backing: .buffered, defer: false)
         window.title = "Maps Desktop"
-        // Заголовок окна в цвет левой колонки Google: светлая rgb(244, 251, 252), в тёмной теме — та же
+        // Заголовок окна в цвет левой колонки Google: светлая rgb(244, 251, 252), в темной теме — та же
         // колонка после перекраски, rgb(30, 29, 30).
         window.titlebarAppearsTransparent = true
         window.backgroundColor = NSColor(name: nil) { appearance in
@@ -86,7 +86,7 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
     }
 
     // Отладка без доступа к экрану: `defaults write local.donsamoylov.GoogleMaps GMSnapshot /путь.png`.
-    // Снимок страницы и её адрес (в .txt) сохраняются через 8 секунд после загрузки и по уведомлению
+    // Снимок страницы и ее адрес (в .txt) сохраняются через 8 секунд после загрузки и по уведомлению
     // `io.github.donsamoylov.mapsdesktop.snapshot`.
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 8) { self.saveSnapshot() }
@@ -137,7 +137,7 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
     required init?(coder: NSCoder) { fatalError() }
 
     /// Прозрачный фон — только на самих Картах (чтобы при загрузке не вспыхивал белый). Страницы входа
-    /// и согласия на cookies рассчитаны на белый фон: без него их тёмный текст ложится на тёмное окно.
+    /// и согласия на cookies рассчитаны на белый фон: без него их темный текст ложится на темное окно.
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         let onMaps = webView.url.map(MapsLink.isMaps) ?? false
         webView.setValue(!onMaps, forKey: "drawsBackground")
@@ -210,8 +210,8 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
         alert.beginSheetModal(for: window!) { completionHandler($0 == .alertFirstButtonReturn) }
     }
 
-    // Геолокация: WebKit спрашивает через приватный делегат, а координаты даёт, только если
-    // приложению разрешила macOS — её спрашивает LocationAccess.
+    // Геолокация: WebKit спрашивает через приватный делегат, а координаты дает, только если
+    // приложению разрешила macOS — ее спрашивает LocationAccess.
     @objc(_webView:requestGeolocationPermissionForFrame:decisionHandler:)
     func requestGeolocation(_ webView: WKWebView, frame: WKFrameInfo, decisionHandler: @escaping (Bool) -> Void) {
         LocationAccess.shared.log("WebKit спрашивает разрешение (frame)")

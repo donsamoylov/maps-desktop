@@ -2,11 +2,10 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var controller: MapWindowController?
-    private let linksMenu = NSMenu(title: L("Links"))
     private let themeMenu = NSMenu(title: L("Theme"))
 
     /// Обычный запуск (из Dock, Finder, Spotlight) или ради ссылки. launchIsDefaultUserInfoKey для этого
-    /// не годится: при восстановлении состояния macOS отдаёт false и на обычном запуске.
+    /// не годится: при восстановлении состояния macOS отдает false и на обычном запуске.
     private var plainLaunch = true
 
     func applicationWillFinishLaunching(_ note: Notification) {
@@ -21,7 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         Updater.shared.start()
     }
 
-    /// Сюда приходят перехваченные ссылки: карты открываем, остальное отдаём браузеру.
+    /// Сюда приходят перехваченные ссылки: карты открываем, остальное отдаем браузеру.
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
             if let web = MapsLink.webURL(for: url) {
@@ -65,10 +64,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         app.addItem(withTitle: L("Check for Updates…"), action: #selector(Updater.checkForUpdates(_:)),
                     keyEquivalent: "").target = Updater.shared
         app.addItem(.separator())
-        let links = NSMenuItem(title: L("Link Handling"), action: nil, keyEquivalent: "")
-        links.submenu = linksMenu
-        linksMenu.delegate = self
-        app.addItem(links)
+        app.addItem(withTitle: L("Install Chrome Extension…"), action: #selector(installExtension(_:)),
+                    keyEquivalent: "").target = self
         app.addItem(.separator())
         app.addItem(withTitle: L("Hide Maps Desktop"), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         let others = app.addItem(withTitle: L("Hide Others"),
@@ -128,28 +125,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return menu
     }
 
-    /// Меню «Перехват ссылок» собирается заново при каждом открытии — состояние берётся из системы.
+    /// Меню «Перехват ссылок» собирается заново при каждом открытии — состояние берется из системы.
     func menuNeedsUpdate(_ menu: NSMenu) {
         if menu === themeMenu { return fillThemeMenu(menu) }
-        guard menu === linksMenu else { return }
-        menu.removeAllItems()
-        let on = LinkRouter.isEnabled
-        let toggle = menu.addItem(withTitle: on ? L("Stop Handling Map Links") : L("Open Map Links Here"),
-                                  action: #selector(toggleLinks(_:)), keyEquivalent: "")
-        toggle.target = self
-        menu.addItem(.separator())
-        menu.addItem(withTitle: L("Open other links in:"), action: nil, keyEquivalent: "").isEnabled = false
-        let current = LinkRouter.fallbackBrowser.standardizedFileURL
-        let browsers = NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "https://example.com")!)
-            .filter { Bundle(url: $0)?.bundleIdentifier != Bundle.main.bundleIdentifier }
-        for url in browsers {
-            let name = FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
-            let item = menu.addItem(withTitle: name, action: #selector(chooseBrowser(_:)), keyEquivalent: "")
-            item.target = self
-            item.representedObject = url
-            item.state = url.standardizedFileURL == current ? .on : .off
-            item.indentationLevel = 1
-        }
     }
 
     private func fillThemeMenu(_ menu: NSMenu) {
@@ -167,27 +145,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         controller?.applyTheme()
     }
 
-    @objc private func toggleLinks(_ sender: Any?) {
-        let wasOn = LinkRouter.isEnabled
-        let done: (Error?) -> Void = { error in
-            let alert = NSAlert()
-            if let error {
-                alert.messageText = L("Couldn’t change the default browser")
-                alert.informativeText = error.localizedDescription
-            } else if wasOn {
-                alert.messageText = L("Map links are no longer handled")
-                alert.informativeText = String(format: L("%@ is the default browser again."), LinkRouter.fallbackBrowserName)
-            } else {
-                alert.messageText = L("Map links now open here")
-                alert.informativeText = String(format: L("Maps Desktop is now the default browser, but keeps only map links. All other links go straight to %@."), LinkRouter.fallbackBrowserName)
-            }
-            alert.runModal()
-        }
-        wasOn ? LinkRouter.disable(completion: done) : LinkRouter.enable(completion: done)
-    }
-
-    @objc private func chooseBrowser(_ sender: NSMenuItem) {
-        if let url = sender.representedObject as? URL { LinkRouter.setFallback(url) }
+    /// Ссылки на карты из Chrome передает приложению расширение «Open in Maps Desktop».
+    @objc private func installExtension(_ sender: Any?) {
+        NSWorkspace.shared.open(URL(string: Bundle.main.infoDictionary?["NMExtensionURL"] as? String
+            ?? "https://github.com/donsamoylov/maps-desktop#open-google-maps-links-from-chrome")!)
     }
 
     @objc private func newWindow(_ sender: Any?) { show(nil) }

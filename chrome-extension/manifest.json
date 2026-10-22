@@ -3,15 +3,29 @@
   "name": "Open in Maps Desktop",
   "short_name": "Maps Desktop",
   "version": "1.0.0",
-  "description": "Opens Google Maps links in the Maps Desktop app for Mac instead of a browser tab.",
-  "permissions": ["webNavigation", "tabs", "storage"],
-  "host_permissions": [
-    "*://*.google.com/*", "*://maps.app.goo.gl/*", "*://goo.gl/*", "*://maps.google.com/*", "*://maps.apple.com/*"
+  "description": "Open Google Maps links in the Maps Desktop app for Mac instead of a browser tab. One click to pause.",
+  "permissions": [
+    "webNavigation",
+    "tabs",
+    "storage"
   ],
-  "background": { "service_worker": "background.js" },
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_title": "Open map links in Maps Desktop: on",
-    "default_icon": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" }
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
   },
-  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" }
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "homepage_url": "https://github.com/donsamoylov/maps-desktop"
 }

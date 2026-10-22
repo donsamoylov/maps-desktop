@@ -15,6 +15,7 @@
 	<key>LSMinimumSystemVersion</key><string>14.0</string>
 	<key>LSApplicationCategoryType</key><string>public.app-category.navigation</string>
 	<key>NSHighResolutionCapable</key><true/>
+	<key>NMExtensionURL</key><string>https://github.com/donsamoylov/maps-desktop#open-google-maps-links-from-chrome</string>
 	<key>NMUpdateRepo</key><string>donsamoylov/maps-desktop</string>
 	<key>NMUpdatePublicKey</key><string>UNGqf1XFZh8hfc9g/Y5CsE9SEtI3LETvxc6o2Ph6/XY=</string>
 	<key>NSPrincipalClass</key><string>NSApplication</string>
@@ -33,16 +34,6 @@
 				<string>comgooglemapsurl</string>
 				<string>comgooglemaps-x-callback</string>
 				<string>geo</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLName</key><string>Web link router</string>
-			<key>CFBundleTypeRole</key><string>Viewer</string>
-			<key>LSHandlerRank</key><string>Alternate</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>http</string>
-				<string>https</string>
 			</array>
 		</dict>
 	</array>

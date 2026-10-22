@@ -1,10 +1,10 @@
 import AppKit
 import WebKit
 
-/// Свайп двумя пальцами по карте двигает её, как в приложении Google Карт на телефоне.
+/// Свайп двумя пальцами по карте двигает ее, как в приложении Google Карт на телефоне.
 /// Сайт Google на прокрутку масштабирует карту, поэтому трекпадный свайп над картой
-/// превращается здесь в перетаскивание мышью. Над панелями свайп остаётся прокруткой,
-/// колёсико обычной мыши (без точных дельт) — масштабом, как задумал Google.
+/// превращается здесь в перетаскивание мышью. Над панелями свайп остается прокруткой,
+/// колесико обычной мыши (без точных дельт) — масштабом, как задумал Google.
 final class MapWebView: WKWebView {
     private enum Target { case undecided, map, page }
 
@@ -14,8 +14,8 @@ final class MapWebView: WKWebView {
     private var origin = NSPoint.zero       // где начат жест, в координатах окна
     private var offset = NSPoint.zero       // накопленный сдвиг пальцев
 
-    /// Окно отдаёт сюда каждое событие прокрутки до того, как WebKit его увидит.
-    /// true — событие забрали (оно станет перетаскиванием или ждёт решения), false — пусть идёт как обычно.
+    /// Окно отдает сюда каждое событие прокрутки до того, как WebKit его увидит.
+    /// true — событие забрали (оно станет перетаскиванием или ждет решения), false — пусть идет как обычно.
     func handleScroll(_ event: NSEvent) -> Bool {
         guard event.hasPreciseScrollingDeltas else { return false }
 
@@ -53,7 +53,7 @@ final class MapWebView: WKWebView {
             dragging = false
             return
         }
-        // Пальцы и карта двигаются вместе; при выключенной «естественной» прокрутке дельты перевёрнуты.
+        // Пальцы и карта двигаются вместе; при выключенной «естественной» прокрутке дельты перевернуты.
         let sign: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
         offset.x += sign * event.scrollingDeltaX
         offset.y -= sign * event.scrollingDeltaY            // у окна ось y смотрит вверх
@@ -80,7 +80,7 @@ final class MapWebView: WKWebView {
         }
     }
 
-    /// Карта у Google — большой canvas; всё, что над ним в другом слое (панели, поиск, кнопки), — не карта.
+    /// Карта у Google — большой canvas; все, что над ним в другом слое (панели, поиск, кнопки), — не карта.
     private func isOverMap(_ windowPoint: NSPoint, completion: @escaping (Bool) -> Void) {
         let p = convert(windowPoint, from: nil)
         let x = p.x / pageZoom

@@ -1,5 +1,5 @@
 import AppKit
-// Иконка Maps Desktop: тёмная плашка и своя метка-капля с плавным радужным градиентом по кругу
+// Иконка Maps Desktop: темная плашка и своя метка-капля с плавным радужным градиентом по кругу
 // и большим отверстием. Нарисована с нуля, логотип Google не используется.
 // swift make_icon.swift <папка .iconset>
 let out = CommandLine.arguments[1]
@@ -70,7 +70,7 @@ for (size, name) in [(16,"16x16"),(32,"16x16@2x"),(32,"32x32"),(64,"32x32@2x"),(
     ctx.restoreGState()
     ctx.saveGState()
     ctx.addPath(pin); ctx.clip(using: .evenOdd)
-    // Конический градиент из тонких секторов (с нахлёстом, без швов).
+    // Конический градиент из тонких секторов (с нахлестом, без швов).
     let steps = 720
     for i in 0..<steps {
         let t = CGFloat(i) / CGFloat(steps)
@@ -89,7 +89,7 @@ for (size, name) in [(16,"16x16"),(32,"16x16@2x"),(32,"32x32"),(64,"32x32@2x"),(
         wedge.closeSubpath()
         ctx.addPath(wedge); ctx.fillPath()
     }
-    // Лёгкий объём: светлее сверху.
+    // Легкий объем: светлее сверху.
     let gloss = CGGradient(colorsSpace: space, colors: [rgb(0xFFFFFF, 0.18), rgb(0xFFFFFF, 0)] as CFArray, locations: [0, 1])!
     ctx.drawLinearGradient(gloss, start: CGPoint(x: 0, y: center.y + r), end: CGPoint(x: 0, y: center.y - r * 0.4), options: [])
     ctx.restoreGState()

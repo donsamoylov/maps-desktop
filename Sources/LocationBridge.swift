@@ -1,7 +1,7 @@
 import WebKit
 
 /// Геолокация для страницы мимо WebKit: в приложении его источник координат не отвечает
-/// (запрос страницы висит до тайм-аута), а macOS отдаёт координату за пару секунд.
+/// (запрос страницы висит до тайм-аута), а macOS отдает координату за пару секунд.
 /// Страница вызывает navigator.geolocation как обычно, скрипт пересылает запрос сюда.
 final class LocationBridge: NSObject, WKScriptMessageHandlerWithReply {
     static let name = "gmGeo"

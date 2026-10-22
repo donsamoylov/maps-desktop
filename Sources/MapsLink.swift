@@ -1,6 +1,6 @@
 import Foundation
 
-/// Распознаёт ссылки на карты и переводит их в веб-адрес Google Maps.
+/// Распознает ссылки на карты и переводит их в веб-адрес Google Maps.
 enum MapsLink {
     static let home = URL(string: "https://www.google.com/maps")!
 
@@ -9,7 +9,7 @@ enum MapsLink {
         guard let scheme = url.scheme?.lowercased() else { return nil }
         switch scheme {
         case "mapsdesktop":
-            // mapsdesktop://open?url=<адрес> — так передаёт ссылки расширение для Chrome.
+            // mapsdesktop://open?url=<адрес> — так передает ссылки расширение для Chrome.
             guard let inner = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
                 .first(where: { $0.name == "url" })?.value.flatMap(URL.init(string:)),
                   ["http", "https"].contains(inner.scheme?.lowercased() ?? "") else { return home }
@@ -71,7 +71,7 @@ enum MapsLink {
         return c.url
     }
 
-    /// google.com/url?q=… — обёртка переходов из поиска и почты.
+    /// google.com/url?q=… — обертка переходов из поиска и почты.
     private static func unwrapGoogleRedirect(_ url: URL) -> URL? {
         guard let host = url.host?.lowercased(), isGoogleHost(host), url.path == "/url" else { return nil }
         let q = query(url)
