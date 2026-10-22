@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.mainMenu = buildMenu()
         if plainLaunch, controller == nil { show(MapsLink.home) }
         Updater.shared.start()
+        ChromeExtension.launch()
     }
 
     /// Сюда приходят перехваченные ссылки: карты открываем, остальное отдаем браузеру.
@@ -146,10 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     /// Ссылки на карты из Chrome передает приложению расширение «Open in Maps Desktop».
-    @objc private func installExtension(_ sender: Any?) {
-        NSWorkspace.shared.open(URL(string: Bundle.main.infoDictionary?["NMExtensionURL"] as? String
-            ?? "https://github.com/donsamoylov/maps-desktop#open-google-maps-links-from-chrome")!)
-    }
+    @objc private func installExtension(_ sender: Any?) { ChromeExtension.install() }
 
     @objc private func newWindow(_ sender: Any?) { show(nil) }
 }

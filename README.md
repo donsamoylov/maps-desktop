@@ -47,12 +47,14 @@ Updates install themselves from then on: **Maps Desktop ▸ Check for Updates…
 
 The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same.
 
-Until it's live in the Chrome Web Store, install it by hand:
-1. Download `maps-desktop-chrome-extension.zip` from the [latest release](../../releases/latest) and unzip it.
-2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and choose the unzipped folder.
+The app offers to set it up on first launch (if Chrome is installed); later you'll find it in **Maps Desktop ▸ Install Chrome Extension…**. Chrome only lets you add extensions outside the Chrome Web Store by hand, so it takes three clicks:
+1. Maps Desktop shows the extension folder in Finder and opens `chrome://extensions` in Chrome.
+2. Turn on **Developer mode** and click **Load unpacked**, then choose that folder.
 3. The first time Chrome asks “Open Maps Desktop?” — tick **Always allow** and click **Open**.
 
-Click the extension's toolbar button to pause or resume it. **File ▸ Open in Browser** in the app opens the current map in Chrome, and the extension leaves that tab alone. The app menu item **Maps Desktop ▸ Install Chrome Extension…** leads here.
+Chrome reads the extension from the app's folder, and Maps Desktop keeps that folder up to date, so the extension updates together with the app (after Chrome restarts). If you skip the offer, it isn't shown again.
+
+Click the extension's toolbar button to pause or resume it. **File ▸ Open in Browser** in the app opens the current map in Chrome, and the extension leaves that tab alone.
 
 ## FAQ
 

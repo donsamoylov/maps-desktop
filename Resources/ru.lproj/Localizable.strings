@@ -52,3 +52,12 @@
 "Update failed" = "Не удалось обновить";
 "Couldn’t unpack the update." = "Не удалось распаковать обновление.";
 "Install Chrome Extension…" = "Установить расширение для Chrome…";
+"Open Google Maps links from Chrome in Maps Desktop?" = "Открывать ссылки на Google Карты из Chrome в Maps Desktop?";
+"A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. Installing takes three clicks." = "Небольшое расширение для Chrome передает в приложение ссылки на карты, по которым вы кликаете в Chrome. Chrome остается браузером по умолчанию. Установка — три клика.";
+"Install…" = "Установить…";
+"Not Now" = "Не сейчас";
+"Google Chrome isn’t installed" = "Google Chrome не установлен";
+"The extension works in Google Chrome. Install Chrome and choose this menu item again." = "Расширение работает в Google Chrome. Установите Chrome и выберите этот пункт меню снова.";
+"Add the extension in Chrome" = "Добавьте расширение в Chrome";
+"1. In Chrome, turn on Developer mode (top right of the Extensions page).\n2. Click Load unpacked and choose the “Chrome Extension” folder shown in Finder.\n3. The first time you open a map link, tick Always allow and click Open." = "1. В Chrome включите «Режим разработчика» (справа вверху на странице расширений).\n2. Нажмите «Загрузить распакованное расширение» и выберите папку «Chrome Extension», открытую в Finder.\n3. При первой ссылке на карту отметьте «Всегда разрешать» и нажмите «Открыть».";
+"Open Chrome and the Folder" = "Открыть Chrome и папку";

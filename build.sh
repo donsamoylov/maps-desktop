@@ -25,6 +25,8 @@ swift make_icon.swift build/AppIcon.iconset >/dev/null
 iconutil -c icns build/AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
 sed "s/__VERSION__/$VERSION/; s/__BUILD__/$BUILD/" Info.plist > "$APP/Contents/Info.plist"
 cp -R Resources/*.lproj "$APP/Contents/Resources/"
+# Расширение для Chrome — внутри приложения, при запуске копируется в папку, откуда его читает Chrome.
+ditto chrome-extension "$APP/Contents/Resources/ChromeExtension"
 
 # Подпись. Постоянный сертификат нужен, чтобы после обновлений macOS помнил разрешения (геолокация).
 codesign --force --timestamp=none --sign "${SIGN_ID:--}" "$APP"
