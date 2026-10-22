@@ -30,27 +30,44 @@ chrome.action.onClicked.addListener(async () => {
 chrome.runtime.onInstalled.addListener(showState);
 chrome.runtime.onStartup.addListener(showState);
 
-// Вкладки, которые сами по себе — карты (пользователь работает с картами в Chrome): их не трогаем,
-// перехватываем только переход НА карты извне.
-const stayOnMaps = new Set();
+// Последний открытый адрес каждой вкладки. tab.url для этого не годится: когда ссылку открывает
+// другая программа или ее вставляют в адресную строку, Chrome сразу показывает в нем новый адрес.
+// Хранится в storage.session — переживает перезапуск фонового скрипта, но не перезапуск Chrome.
+const key = (tabId) => `tab${tabId}`;
+const committedUrl = async (tabId) => (await chrome.storage.session.get(key(tabId)))[key(tabId)];
+const remember = (tabId, url) => chrome.storage.session.set({ [key(tabId)]: url });
+
+// Вкладки, открытые до запуска расширения, — запоминаем как есть.
+const seed = async () => {
+  for (const tab of await chrome.tabs.query({})) {
+    if (tab.url && (await committedUrl(tab.id)) === undefined) await remember(tab.id, tab.url);
+  }
+};
+chrome.runtime.onInstalled.addListener(seed);
+chrome.runtime.onStartup.addListener(seed);
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (d) => {
   if (d.frameId !== 0 || !isMapsLink(d.url) || !(await isEnabled())) return;
   if (new URL(d.url).searchParams.has('mdkeep')) return;   // «Открыть в браузере» из самого приложения
-  const tab = await chrome.tabs.get(d.tabId).catch(() => null);
-  if (!tab) return;
-  if (stayOnMaps.has(d.tabId) || isMapsLink(tab.url || '')) return;
+  const prev = await committedUrl(d.tabId);
+  // Во вкладке уже карты — пользователь работает с ними в Chrome, не мешаем.
+  if (prev && isMapsLink(prev)) return;
 
   const handoff = 'mapsdesktop://open?url=' + encodeURIComponent(d.url);
-  const blank = !tab.url || tab.url === 'about:blank' || tab.url.startsWith('chrome://newtab');
-  await chrome.tabs.update(d.tabId, { url: handoff });
-  // Ссылка открылась в новой пустой вкладке — закрываем ее, приложение уже показывает карту.
+  // Вкладка новая и пустая: ее открыли только ради ссылки.
+  const blank = !prev || prev === 'about:blank' || prev.startsWith('chrome://newtab') ||
+    prev.startsWith('chrome-search://');
+  await chrome.tabs.update(d.tabId, { url: handoff }).catch(() => {});
+  // Приложение уже показывает карту — пустую вкладку закрываем.
   if (blank) setTimeout(() => chrome.tabs.remove(d.tabId).catch(() => {}), 1500);
 });
 
-// Если пользователь все-таки остался на картах во вкладке — дальше не мешаем.
 chrome.webNavigation.onCommitted.addListener((d) => {
-  if (d.frameId !== 0) return;
-  if (isMapsLink(d.url)) stayOnMaps.add(d.tabId); else stayOnMaps.delete(d.tabId);
+  if (d.frameId === 0) remember(d.tabId, d.url);
 });
-chrome.tabs.onRemoved.addListener((id) => stayOnMaps.delete(id));
+chrome.webNavigation.onTabReplaced.addListener(async (d) => {
+  const url = await committedUrl(d.replacedTabId);
+  if (url !== undefined) remember(d.tabId, url);
+  chrome.storage.session.remove(key(d.replacedTabId));
+});
+chrome.tabs.onRemoved.addListener((id) => chrome.storage.session.remove(key(id)));
