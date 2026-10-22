@@ -1,11 +1,8 @@
 import AppKit
 // Иконка Maps Desktop: темная плашка и своя метка-капля с плавным радужным градиентом по кругу
 // и большим отверстием. Нарисована с нуля, логотип Google не используется.
-// swift make_icon.swift <папка .iconset> [extension]
-// Вариант extension — для расширения Chrome и магазина: та же метка, но заливка двухцветная
-// сине-фиолетовая вместо радуги, чтобы значок не напоминал логотип Google Карт.
+// swift make_icon.swift <папка .iconset>
 let out = CommandLine.arguments[1]
-let extensionStyle = CommandLine.arguments.count > 2 && CommandLine.arguments[2] == "extension"
 
 func rgb(_ hex: UInt32, _ a: CGFloat = 1) -> CGColor {
     CGColor(srgbRed: CGFloat(hex >> 16 & 0xff) / 255, green: CGFloat(hex >> 8 & 0xff) / 255,
@@ -14,15 +11,11 @@ func rgb(_ hex: UInt32, _ a: CGFloat = 1) -> CGColor {
 let space = CGColorSpace(name: CGColorSpace.sRGB)!
 
 // Цвета по кругу от «12 часов» по часовой стрелке.
-let rainbow: [(CGFloat, UInt32)] = [
+let ring: [(CGFloat, UInt32)] = [
     (0.00, 0x8A7BFF), (0.09, 0x4F8BFF), (0.22, 0x2FA8D8), (0.33, 0x22B573),
     (0.50, 0x1DB954), (0.60, 0x7CCB4A), (0.67, 0xF2C230), (0.74, 0xF59A2E),
     (0.81, 0xF0563F), (0.89, 0xE0457B), (0.95, 0xB45CD6), (1.00, 0x8A7BFF),
 ]
-let twoTone: [(CGFloat, UInt32)] = [
-    (0.00, 0x8AB4F8), (0.25, 0x6F8CFF), (0.50, 0x7A5CFF), (0.75, 0x6F8CFF), (1.00, 0x8AB4F8),
-]
-let ring = extensionStyle ? twoTone : rainbow
 
 func pinPath(center c: CGPoint, radius r: CGFloat) -> CGMutablePath {
     let tip = CGPoint(x: c.x, y: c.y - r * 1.75)
@@ -73,7 +66,7 @@ for (size, name) in [(16,"16x16"),(32,"16x16@2x"),(32,"32x32"),(64,"32x32@2x"),(
     let pin = pinPath(center: center, radius: r)
     ctx.saveGState()
     ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.01), blur: s * 0.03, color: rgb(0x000000, 0.45))
-    ctx.addPath(pin); ctx.setFillColor(rgb(extensionStyle ? 0x6F8CFF : 0x1DB954)); ctx.fillPath(using: .evenOdd)
+    ctx.addPath(pin); ctx.setFillColor(rgb(0x1DB954)); ctx.fillPath(using: .evenOdd)
     ctx.restoreGState()
     ctx.saveGState()
     ctx.addPath(pin); ctx.clip(using: .evenOdd)

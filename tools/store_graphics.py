@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Графика для Chrome Web Store: два скриншота 1280×800 и малая промо-плитка 440×280.
 
-    swift make_icon.swift build/ExtensionIcon.iconset extension
+    ./build.sh            # рисует build/AppIcon.iconset
     python3 tools/store_graphics.py <снимок карты из приложения.png>
 
 Снимок делается tools/shot.sh; из него берется только область карты справа от боковой
@@ -62,7 +62,7 @@ def app_window(map_img, w, h, title="Maps Desktop"):
 
 
 def icon(size):
-    return Image.open(f"{ROOT}/build/ExtensionIcon.iconset/icon_512x512@2x.png").convert("RGBA").resize((size, size), Image.LANCZOS)
+    return Image.open(f"{ROOT}/build/AppIcon.iconset/icon_512x512@2x.png").convert("RGBA").resize((size, size), Image.LANCZOS)
 
 
 def text_block(d, xy, lines, gap=10):
