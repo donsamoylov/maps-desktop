@@ -25,12 +25,23 @@ enum MapsLink {
             return fromGeo(url)
         case "http", "https":
             if let inner = unwrapGoogleRedirect(url) { return webURL(for: inner) }
-            if isMaps(url) { return url }
+            if isMaps(url) { return placeByName(url) ?? url }
             if isAppleMaps(url) { return fromAppleMaps(url) }
             return nil
         default:
             return nil
         }
+    }
+
+    /// /maps/place/<название> без координат и данных Google открывает пустой карточкой —
+    /// такую ссылку превращаем в поиск этого названия.
+    private static func placeByName(_ url: URL) -> URL? {
+        let parts = url.path.split(separator: "/", omittingEmptySubsequences: true)
+        guard parts.count == 3, parts[0] == "maps", parts[1] == "place", !parts[2].hasPrefix("@"),
+              var c = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        c.percentEncodedPath = "/maps/search/" + (url.absoluteString.components(separatedBy: "/maps/place/").last?
+            .components(separatedBy: CharacterSet(charactersIn: "/?#")).first ?? "")
+        return c.url
     }
 
     /// Ссылка, которую Google Maps открывает у себя: google.*/maps, maps.google.*, короткие goo.gl.
