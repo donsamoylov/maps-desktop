@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key><string>Maps Desktop</string>
+	<key>CFBundleDisplayName</key><string>Maps Desktop</string>
+	<key>CFBundleExecutable</key><string>MapsDesktop</string>
+	<key>CFBundleIdentifier</key><string>io.github.donsamoylov.mapsdesktop</string>
+	<key>CFBundlePackageType</key><string>APPL</string>
+	<key>CFBundleShortVersionString</key><string>__VERSION__</string>
+	<key>CFBundleVersion</key><string>__BUILD__</string>
+	<key>CFBundleIconFile</key><string>AppIcon</string>
+	<key>CFBundleDevelopmentRegion</key><string>en</string>
+	<key>CFBundleLocalizations</key><array><string>en</string><string>ru</string></array>
+	<key>LSMinimumSystemVersion</key><string>14.0</string>
+	<key>LSApplicationCategoryType</key><string>public.app-category.navigation</string>
+	<key>NSHighResolutionCapable</key><true/>
+	<key>NMUpdateRepo</key><string>donsamoylov/maps-desktop</string>
+	<key>NMUpdatePublicKey</key><string>UNGqf1XFZh8hfc9g/Y5CsE9SEtI3LETvxc6o2Ph6/XY=</string>
+	<key>NSPrincipalClass</key><string>NSApplication</string>
+	<key>NSLocationUsageDescription</key><string>To show where you are on the map.</string>
+	<key>NSLocationWhenInUseUsageDescription</key><string>To show where you are on the map.</string>
+	<key>NSHumanReadableCopyright</key><string>Unofficial dark Google Maps app for Mac. Not affiliated with Google.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key><string>Map links</string>
+			<key>CFBundleTypeRole</key><string>Viewer</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mapsdesktop</string>
+				<string>comgooglemaps</string>
+				<string>comgooglemapsurl</string>
+				<string>comgooglemaps-x-callback</string>
+				<string>geo</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key><string>Web link router</string>
+			<key>CFBundleTypeRole</key><string>Viewer</string>
+			<key>LSHandlerRank</key><string>Alternate</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>http</string>
+				<string>https</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
