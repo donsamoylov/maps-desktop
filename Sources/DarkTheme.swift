@@ -18,6 +18,7 @@ enum DarkTheme {
       if (!window.__gmDark) {
         const css = `
           html.gm-dark { filter: invert(0.9) hue-rotate(180deg) !important; background: #fff !important; }
+          html.gm-dark.gm-frame { background: transparent !important; }
           html.gm-dark img, html.gm-dark video, html.gm-dark picture,
           html.gm-dark [style*="background-image: url"], html.gm-dark [style*="background-image:url"],
           html.gm-dark.gm-photo canvas, html.gm-dark .gm-unflip
@@ -147,6 +148,18 @@ enum DarkTheme {
         // и так рисует темными — их тоже возвращаем в исходные цвета.
         const streetFlipped = new Map();   // элемент → его исходный inline-фон, если мы его меняли
         const visit = (e, big) => {
+          if (e.tagName === 'IFRAME') {
+            // Фрейм чужого источника (панели Google: аккаунт, приложения) красит себя сам этим же скриптом —
+            // инверсия страницы поверх вернула бы его в светлый. Адрес в атрибуте src бывает about:blank,
+            // поэтому определяем по недоступному содержимому.
+            let sameOrigin = false;
+            try { sameOrigin = !!e.contentDocument; } catch (err) {}
+            if (!sameOrigin && !e.classList.contains('gm-unflip')) {
+              e.classList.add('gm-unflip');
+              patched.set(e, Object.assign(patched.get(e) || {}, { unflip: true }));
+            }
+            return;
+          }
           const cs = getComputedStyle(e);
           const m = cs.backgroundColor.match(/rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/);
           // Полупрозрачный белый — это наша же перекраска темной подложки в стилях: тоже темная плашка.
@@ -313,16 +326,64 @@ enum DarkTheme {
           ctx.putImageData(data, 0, 0);
           return c;
         };
+        // Палитра темной схемы как в приложении Google Карт на iPhone: светлый цвет Google → цвет на экране.
+        // На экран canvas попадает через оттенок (#gm-tint, умножение) и инверсию страницы, поэтому
+        // в текстуру пишется прообраз: H⁻¹(цвет) / оттенок, где H — invert(0.9) + hue-rotate(180°).
+        const HR = [[-0.574, 1.430, 0.144], [0.426, 0.430, 0.144], [0.426, 1.430, -0.856]];
+        const TINT = [226 / 255, 234 / 255, 1];
+        const preimage = t => HR.map((row, i) => {
+          const u = row[0] * t[0] / 255 + row[1] * t[1] / 255 + row[2] * t[2] / 255;
+          return Math.max(0, Math.min(255, Math.round((0.9 - u) / 0.8 / TINT[i] * 255)));
+        });
+        const palette = [
+          [[245, 243, 243], [32, 38, 58]], [[252, 250, 248], [30, 36, 55]], [[238, 236, 236], [36, 42, 64]],
+          [[243, 246, 255], [32, 40, 62]], [[242, 239, 233], [32, 38, 58]],                      // земля
+          [[232, 234, 237], [42, 48, 72]],                                                         // здания
+          [[248, 240, 222], [46, 44, 82]], [[252, 232, 230], [58, 40, 62]],                       // застройка, больницы
+          [[216, 224, 231], [62, 72, 102]], [[207, 217, 227], [70, 80, 112]],                      // улицы
+          [[199, 208, 215], [74, 84, 116]], [[189, 200, 208], [80, 90, 124]], [[193, 203, 210], [80, 90, 124]],
+          [[144, 218, 238], [20, 32, 56]],                                                         // вода
+          [[195, 241, 213], [30, 72, 64]], [[181, 236, 202], [34, 82, 70]], [[211, 248, 226], [28, 62, 58]],
+          [[117, 199, 172], [36, 96, 80]],                                                         // парки
+        ].map(([from, to]) => [from, preimage(to)]);
+        const repaint = d => {
+          let hit = false;
+          for (let i = 0; i < d.length; i += 4)
+            for (const [f, t] of palette)
+              if (Math.abs(d[i] - f[0]) <= 1 && Math.abs(d[i + 1] - f[1]) <= 1 && Math.abs(d[i + 2] - f[2]) <= 1) {
+                d[i] = t[0]; d[i + 1] = t[1]; d[i + 2] = t[2]; hit = true; break;
+              }
+          return hit;
+        };
+        // Фон схемы, которым Google очищает canvas, — тоже из палитры.
+        const clearFrom = [242, 239, 233], clearTo = preimage([32, 38, 58]).map(v => v / 255);
+        for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
+          if (!proto) continue;
+          const clear = proto.clearColor;
+          proto.clearColor = function (r, g, b, a) {
+            if (dark && !photo() && Math.abs(r * 255 - clearFrom[0]) < 2 && Math.abs(g * 255 - clearFrom[1]) < 2 &&
+                Math.abs(b * 255 - clearFrom[2]) < 2) return clear.call(this, clearTo[0], clearTo[1], clearTo[2], a);
+            return clear.call(this, r, g, b, a);
+          };
+        }
         let lastPanorama = 0;
         let panoramaArrived = () => {};
         const stats = window.__gmTextures = { calls: 0, buffers: 0, images: 0, fixed: 0, skipped: 0 };
-        const touchUp = (gl, args, sourceIndex, formatIndex, typeIndex) => {
+        const touchUp = (gl, args, sourceIndex, formatIndex, typeIndex, widthIndex = -1) => {
           stats.calls++;
           if (!dark || photo()) return args;
           const src = args[sourceIndex];
           if (!src) return args;
           // Сырые буферы не трогаем: в них бывают не картинки, а данные (узоры, маски), и правка их портит.
-          if (ArrayBuffer.isView(src)) return args;
+          if (ArrayBuffer.isView(src)) {
+            // Палитра схемы — узкие RGBA-текстуры (1×N): заменяем цвета заливок на палитру темной карты.
+            const w = widthIndex >= 0 ? args[widthIndex] : 0;
+            if (src instanceof Uint8Array && args[formatIndex] === gl.RGBA && w > 0 && w <= 4 && src.length % 4 === 0) {
+              const copy = new Uint8Array(src);
+              if (repaint(copy)) { const out = args.slice(); out[sourceIndex] = copy; return out; }
+            }
+            return args;
+          }
           if (typeof src !== 'object' || !('width' in src)) return args;
           if (src instanceof HTMLImageElement && /streetview|cbk|panoid|ggpht|googleusercontent/.test(src.currentSrc || src.src))
             { lastPanorama = performance.now(); panoramaArrived(); }
@@ -337,19 +398,27 @@ enum DarkTheme {
           const tex = proto.texImage2D, sub = proto.texSubImage2D;
           // texImage2D(target, level, internalformat, format, type, source) или (…, width, height, border, format, type, pixels)
           proto.texImage2D = function (...a) {
-            return tex.apply(this, a.length === 6 ? touchUp(this, a, 5, 3, 4) : a.length >= 9 ? touchUp(this, a, 8, 6, 7) : a);
+            return tex.apply(this, a.length === 6 ? touchUp(this, a, 5, 3, 4) : a.length >= 9 ? touchUp(this, a, 8, 6, 7, 3) : a);
           };
           // texSubImage2D(target, level, x, y, format, type, source) или (…, width, height, format, type, pixels)
           proto.texSubImage2D = function (...a) {
-            return sub.apply(this, a.length === 7 ? touchUp(this, a, 6, 4, 5) : a.length >= 9 ? touchUp(this, a, 8, 6, 7) : a);
+            return sub.apply(this, a.length === 7 ? touchUp(this, a, 6, 4, 5) : a.length >= 9 ? touchUp(this, a, 8, 6, 7, 4) : a);
           };
         }
 
-        const isMaps = /(^|\.)google\.[a-z.]+$/.test(location.hostname) && /^\/maps/.test(location.pathname);
+        // Встроенные панели Google поверх Карт (карточка аккаунта, меню приложений) — отдельные страницы
+        // ogs.google.com во фрейме. Карты показывают их без своей инверсии, а темная тема применяется
+        // внутри фрейма этим же скриптом — тогда фото и тени в них тоже в правильных цветах.
+        const parentIsMaps = () => { try { return /^\/maps/.test(window.parent.location.pathname); } catch (e) { return false; } };
+        const googlePanel = window !== window.top &&
+          (/^ogs\.google\./.test(location.hostname) || location.protocol === 'about:' && parentIsMaps());
+        const isMaps = googlePanel ||
+          /(^|\.)google\.[a-z.]+$/.test(location.hostname) && /^\/maps/.test(location.pathname);
         let wanted = false, inStreet = street();
         const apply = () => {
           dark = wanted && isMaps;
           document.documentElement.classList.toggle('gm-dark', dark);
+          document.documentElement.classList.toggle('gm-frame', dark && googlePanel);
           document.documentElement.classList.toggle('gm-photo', photo());
           // Вышли из Street View — темные панели просмотрщика больше не исключение.
           if (!inStreet) {
@@ -429,7 +498,7 @@ enum DarkTheme {
 
     static func userScript(dark: Bool) -> WKUserScript {
         WKUserScript(source: source + "window.__gmDark(\(dark));",
-                     injectionTime: .atDocumentStart, forMainFrameOnly: true)
+                     injectionTime: .atDocumentStart, forMainFrameOnly: false)
     }
 
     static func apply(_ dark: Bool, to webView: WKWebView) {
