@@ -18,7 +18,8 @@ Open in Maps Desktop is the companion extension for Maps Desktop — a free, ope
 
 ✔ Works with all Google Maps links: google.com/maps, maps.google.com, maps.app.goo.gl short links, places, searches, directions and coordinates
 ✔ Apple Maps links (maps.apple.com) open as the same place in Google Maps
-✔ Closes the empty tab that was opened only for the link
+✔ Reload a Google Maps tab to send it to the app too
+✔ Click Cancel in Chrome’s prompt and the map simply opens in Chrome
 ✔ Your default browser stays Chrome — nothing else changes
 ✔ One click on the toolbar button pauses or resumes it
 ✔ Want a map in Chrome after all? Use File ▸ Open in Browser in the app — the extension leaves that tab alone
@@ -49,7 +50,7 @@ Opens Google Maps links in the Maps Desktop app for Mac instead of a browser tab
 
 **Permission justification:**
 - `webNavigation` — to notice when a tab starts navigating to a Google Maps or Apple Maps link, so that link can be passed to the Maps Desktop app before the page loads.
-- `tabs` — to read the address of the tab that started the navigation (so a tab where the user is already working with Google Maps is left alone), to redirect the link to the app, and to close the empty tab that was opened only for that link.
+- `tabs` — to read the addresses of tabs that were already open when the extension started (so a tab where the user is already working with Google Maps is left alone) and to redirect the link to the app.
 - `storage` — to remember one setting: whether the extension is turned on or off.
 
 **Remote code:** No, I am not using remote code. All code is in the package.
