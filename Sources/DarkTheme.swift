@@ -387,6 +387,8 @@ enum DarkTheme {
           palette.map(([f, t]) => '{float d=length(cu-vec3(' + f.map(v => n(v / lum(f))) + '));if(d<bd){bd=d;bt=vec3(' + t.map(n) +
             ');br=lu/' + n(lum(f)) + ';}}').join('') +
           'if(bd<.12)return clamp(bt*clamp(br,.25,1.3),0.,1.);}' +
+          // Насыщенное, чего нет в таблице (маршрут, пробки, линии транспорта), — как у Google в светлой теме.
+          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3)return u;' +
           'vec3 d=.1+.8*vec3(' + A.map((row, i) => 'dot(vec3(' + row.map(n) + '),u)+' + n(B[i])).join(',') + ');' +
           'd*=mix(vec3(1),vec3(' + COOL.map(n) + '),1.-smoothstep(.25,.5,dot(d,vec3(.299,.587,.114))));' +
           'return clamp((d-.1)/.8,0.,1.);}';
@@ -426,12 +428,17 @@ enum DarkTheme {
         const isIcon = src => /\.rgb!=\w+&&\w+\.rgb!=\w+/.test(src);
         // Готовую картинку карты Google копирует на экран отдельным шейдером — его не трогаем.
         const isBlit = src => /gl_FragColor=texture2D\(\w+,\w+\);gl_FragColor\.a=gl_FragColor\.a\*\w+\+\w+;/.test(src);
+        // Плашка над маршрутом (время в пути): рамка со стрелкой и тенью. Оставляем как в светлой теме —
+        // белая с темным текстом.
+        const isCallout = src => /gl_FragCoord/.test(src) && /\*vec4\(1,1,1,\w+\)/.test(src);
         const isMatrix = src => /uniform mat4 \w+;/.test(src) && /texture2D/.test(src);
         // В текстурах с цветовой матрицей — сетка загрузки: светло-серые линии приглушаем к цвету земли.
         const matrixShader = src => withMain(src, 'void main(){gmMain();' +
           'if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;vec3 u=c.rgb/c.a;' +
           'float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b));' +
-          'u=mix(u,vec3(' + LAND.map(v => n(v / 255)).join(',') + '),.75*(1.-smoothstep(.06,.14,s))*smoothstep(.2,.45,dot(u,vec3(.299,.587,.114))));' +
+          // Плашки (время маршрута) — чисто белые: их не трогаем, сетка — серая.
+          'float l=dot(u,vec3(.299,.587,.114));' +
+          'u=mix(u,vec3(' + LAND.map(v => n(v / 255)).join(',') + '),.75*(1.-smoothstep(.06,.14,s))*smoothstep(.2,.45,l)*(1.-smoothstep(.9,.97,l)));' +
           'gl_FragColor.rgb=u*c.a;}}');
         const fixedShaders = new WeakSet(), fixedPrograms = new WeakMap(), mapPrograms = new WeakSet();
         const mapShaders = new WeakSet();
@@ -444,7 +451,7 @@ enum DarkTheme {
           };
           const source = proto.shaderSource, attach = proto.attachShader, use = proto.useProgram;
           proto.shaderSource = function (sh, src) {
-            if (typeof src === 'string' && /gl_FragColor/.test(src) && !isBlit(src) &&
+            if (typeof src === 'string' && /gl_FragColor/.test(src) && !isBlit(src) && !isCallout(src) &&
                 this.getShaderParameter(sh, this.SHADER_TYPE) === this.FRAGMENT_SHADER) {
               fixedShaders.add(sh);
               if (isMatrix(src)) return source.call(this, sh, matrixShader(src));
