@@ -75,10 +75,10 @@ enum DarkTheme {
         // нарисовать первые тайлы до смены адреса (их потом не перерисовывает). Поэтому спутник узнаем и по
         // снимкам: Google загружает их в видеокарту картинками 256×256 (blob:). Когда адрес уходит со
         // спутника, подсказку сбрасываем.
-        let imageryAt = 0, urlPhotoWas = false;
+        let imageryAt = -Infinity, urlPhotoWas = false;
         const photo = () => {
           const url = /!3m\d+!1e3/.test(location.href);
-          if (urlPhotoWas && !url) imageryAt = 0;
+          if (urlPhotoWas && !url) imageryAt = -Infinity;
           urlPhotoWas = url;
           return url || inStreet || performance.now() - imageryAt < 3000;
         };
@@ -192,11 +192,20 @@ enum DarkTheme {
             // Фрейм чужого источника (панели Google: аккаунт, приложения) красит себя сам этим же скриптом —
             // инверсия страницы поверх вернула бы его в светлый. Адрес в атрибуте src бывает about:blank,
             // поэтому определяем по недоступному содержимому.
-            let sameOrigin = false;
-            try { sameOrigin = !!e.contentDocument; } catch (err) {}
-            if (!sameOrigin && !e.classList.contains('gm-unflip')) {
+            // Пустой фрейм (about:blank) с панелью Google (опрос и т.п.) тоже красит себя сам — у него gm-frame.
+            let sameOrigin = false, selfDark = false;
+            try {
+              sameOrigin = !!e.contentDocument;
+              selfDark = !!e.contentDocument?.documentElement.classList.contains('gm-frame');
+            } catch (err) {}
+            if ((!sameOrigin || selfDark) && !e.classList.contains('gm-unflip')) {
               e.classList.add('gm-unflip');
               patched.set(e, Object.assign(patched.get(e) || {}, { unflip: true }));
+              // Фон самого фрейма (у опроса — белый под прозрачной страницей) инверсия страницы больше не
+              // затемняет — ставим сразу темный, как она бы его сделала.
+              const bg = getComputedStyle(e).backgroundColor.match(/rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/);
+              if (bg && (bg[4] === undefined || +bg[4] > 0))
+                patch(e, 'background-color', `rgba(${bg.slice(1, 4).map(v => Math.round(229.5 - 0.8 * v)).join(', ')}, ${bg[4] ?? 1})`);
             }
             return;
           }
@@ -499,14 +508,22 @@ enum DarkTheme {
           'u=mix(u,vec3(.05,.06,.09),(1.-gmT)*(1.-smoothstep(.1,.2,s))*smoothstep(.55,.75,l)*(1.-smoothstep(.5,.8,c.a)));' +
           'gl_FragColor.rgb=u*c.a;}}');
         const isIcon = src => /\.rgb!=\w+&&\w+\.rgb!=\w+/.test(src);
-        // Готовую картинку карты Google копирует на экран отдельным шейдером — его не трогаем.
+        // Готовую картинку карты Google копирует на экран отдельным шейдером — готовый кадр не трогаем, а
+        // картинки-тайлы схемы (gmRaw, при запуске Google рисует ими первые кадры) переводим как карту.
+        const blitShader = src => withMain(src, mapGLSL + 'uniform float gmRaw;void main(){gmMain();' +
+          'if(gmFix>.5&&gmRaw>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;' +
+          'gl_FragColor.rgb=gmMap(clamp(c.rgb/c.a,0.,1.),true)*c.a;}}');
         const isBlit = src => /gl_FragColor=texture2D\(\w+,\w+\);gl_FragColor\.a=gl_FragColor\.a\*\w+\+\w+;/.test(src);
         // Плашка над маршрутом (время в пути): рамка со стрелкой и тенью. Оставляем как в светлой теме —
         // белая с темным текстом.
         const isCallout = src => /gl_FragCoord/.test(src) && /\*vec4\(1,1,1,\w+\)/.test(src);
         const isMatrix = src => /uniform mat4 \w+;/.test(src) && /texture2D/.test(src);
-        // В текстурах с цветовой матрицей — сетка загрузки: светло-серые линии приглушаем к цвету земли.
-        const matrixShader = src => withMain(src, 'void main(){gmMain();' +
+        // Текстуры с цветовой матрицей. Картинки-тайлы схемы (Google показывает их, пока не готовы векторные,
+        // и при запуске — подолгу) переводим как карту: gmRaw — текстура загружена из картинки. Остальное —
+        // уже готовые кадры и сетка загрузки: светло-серые линии сетки приглушаем к цвету земли.
+        const matrixShader = src => withMain(src, mapGLSL + 'uniform float gmRaw;void main(){gmMain();' +
+          'if(gmFix>.5&&gmRaw>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;' +
+          'gl_FragColor.rgb=gmMap(clamp(c.rgb/c.a,0.,1.),true)*c.a;return;}' +
           'if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;vec3 u=c.rgb/c.a;' +
           'float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b));' +
           // Плашки (время маршрута) — чисто белые: их не трогаем, сетка — серая.
@@ -515,6 +532,7 @@ enum DarkTheme {
           'gl_FragColor.rgb=u*c.a;}}');
         const fixedShaders = new WeakSet(), fixedPrograms = new WeakMap(), mapPrograms = new WeakSet();
         const mapShaders = new WeakSet();
+        const matrixShaders = new WeakMap(), matrixPrograms = new WeakMap(), rawTextures = new WeakSet();
         for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
           if (!proto) continue;
           const clear = proto.clearColor;
@@ -524,10 +542,17 @@ enum DarkTheme {
           };
           const source = proto.shaderSource, attach = proto.attachShader, use = proto.useProgram;
           proto.shaderSource = function (sh, src) {
-            if (typeof src === 'string' && /gl_FragColor/.test(src) && !isBlit(src) && !isCallout(src) &&
+            if (typeof src === 'string' && /gl_FragColor/.test(src) && !isCallout(src) &&
                 this.getShaderParameter(sh, this.SHADER_TYPE) === this.FRAGMENT_SHADER) {
               fixedShaders.add(sh);
-              if (isMatrix(src)) return source.call(this, sh, matrixShader(src));
+              if (isBlit(src)) {
+                matrixShaders.set(sh, (src.match(/uniform sampler2D (\w+);/) || [])[1]);
+                return source.call(this, sh, blitShader(src));
+              }
+              if (isMatrix(src)) {
+                matrixShaders.set(sh, (src.match(/uniform sampler2D (\w+);/) || [])[1]);
+                return source.call(this, sh, matrixShader(src));
+              }
               if (isIcon(src)) return source.call(this, sh, iconShader(src));
               if (isSpace(src)) return source.call(this, sh, spaceShader(src));
               mapShaders.add(sh);
@@ -538,6 +563,7 @@ enum DarkTheme {
           proto.attachShader = function (p, sh) {
             if (fixedShaders.has(sh)) fixedPrograms.set(p, null);
             if (mapShaders.has(sh)) mapPrograms.add(p);
+            if (matrixShaders.has(sh)) matrixPrograms.set(p, { sampler: matrixShaders.get(sh) });
             return attach.call(this, p, sh);
           };
           // gmFix ставим перед каждым рисованием: Google не всегда заново выбирает программу, а режим
@@ -555,11 +581,30 @@ enum DarkTheme {
             if (p && fixedPrograms.has(p)) fix(this, p);
             return r;
           };
+          // Какая текстура к какому блоку привязана — чтобы знать, рисуется ли картинка-тайл.
+          const active = proto.activeTexture, bind = proto.bindTexture;
+          proto.activeTexture = function (u) { this.__gmUnit = u - this.TEXTURE0; return active.call(this, u); };
+          proto.bindTexture = function (t, tex) {
+            if (t === this.TEXTURE_2D) (this.__gmBound = this.__gmBound || [])[this.__gmUnit || 0] = tex;
+            return bind.call(this, t, tex);
+          };
+          const raw = (gl, p) => {
+            const st = matrixPrograms.get(p);
+            if (st.loc === undefined) {
+              st.loc = gl.getUniformLocation(p, 'gmRaw');
+              st.unit = st.sampler ? gl.getUniformLocation(p, st.sampler) : null;
+            }
+            if (!st.loc) return;
+            const unit = st.unit ? gl.getUniform(p, st.unit) : 0;
+            const on = rawTextures.has(gl.__gmBound?.[unit]) ? 1 : 0;
+            if (st.on !== on) { gl.uniform1f(st.loc, on); st.on = on; }
+          };
           for (const name of ['drawArrays', 'drawElements']) {
             const draw = proto[name];
             proto[name] = function (...a) {
               const p = this.__gmProgram;
               if (p && fixedPrograms.has(p)) fix(this, p);
+              if (p && matrixPrograms.has(p)) raw(this, p);
               return draw.apply(this, a);
             };
           }
@@ -582,7 +627,15 @@ enum DarkTheme {
           if (!proto) continue;
           const tex = proto.texImage2D, sub = proto.texSubImage2D;
           // texImage2D(target, level, internalformat, format, type, source) или (…, width, height, border, format, type, pixels)
-          proto.texImage2D = function (...a) { return tex.apply(this, a.length === 6 ? touchUp(a, 5) : a); };
+          proto.texImage2D = function (...a) {
+            // Текстура из картинки — «сырая» (тайл схемы); пустая или из буфера — кадр или данные.
+            const t = this.__gmBound?.[this.__gmUnit || 0];
+            if (t && a[0] === this.TEXTURE_2D && a[1] === 0) {
+              const src = a.length === 6 ? a[5] : null;
+              if (src instanceof HTMLImageElement || src instanceof ImageBitmap) rawTextures.add(t); else rawTextures.delete(t);
+            }
+            return tex.apply(this, a.length === 6 ? touchUp(a, 5) : a);
+          };
           // texSubImage2D(target, level, x, y, format, type, source)
           proto.texSubImage2D = function (...a) {
             return sub.apply(this, a.length === 7 ? touchUp(a, 6) : a);
