@@ -387,10 +387,9 @@ enum DarkTheme {
           palette.map(([f, t]) => '{float d=length(cu-vec3(' + f.map(v => n(v / lum(f))) + '));if(d<bd){bd=d;bt=vec3(' + t.map(n) +
             ');br=lu/' + n(lum(f)) + ';}}').join('') +
           'if(bd<.12)return clamp(bt*clamp(br,.25,1.3),0.,1.);}' +
-          // Насыщенное, чего нет в таблице (маршрут, пробки, линии транспорта), — как у Google в светлой теме.
-          // Выбранный маршрут у Google в браузере фиолетово-синий — делаем синим, как в Картах на iPhone.
-          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3){' +
-          'if(u.b>=max(u.r,u.g)&&u.r>u.g)return vec3(.41,.64,1.)*u.b;return u;}' +
+          // Насыщенное, чего нет в таблице (маршрут, пробки, линии транспорта), — как у Google в светлой
+          // теме: на экране холст = 0,1 + 0,8 × значение, поэтому значение берем с поправкой на эту формулу.
+          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3)return clamp((u-.1)/.8,0.,1.);' +
           'vec3 d=.1+.8*vec3(' + A.map((row, i) => 'dot(vec3(' + row.map(n) + '),u)+' + n(B[i])).join(',') + ');' +
           'd*=mix(vec3(1),vec3(' + COOL.map(n) + '),1.-smoothstep(.25,.5,dot(d,vec3(.299,.587,.114))));' +
           'return clamp((d-.1)/.8,0.,1.);}';
