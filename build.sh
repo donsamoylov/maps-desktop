@@ -3,7 +3,8 @@
 #   ./build.sh                 — собрать build/Maps Desktop.app
 #   ./build.sh --install       — и поставить в ~/Applications
 #   ./build.sh --zip           — и упаковать build/MapsDesktop.zip для релиза
-# Переменные: VERSION (1.2.0), BUILD (номер сборки), SIGN_ID (имя сертификата подписи; по умолчанию ad-hoc).
+# Переменные: VERSION (1.2.0), BUILD (номер сборки), SIGN_ID (имя сертификата подписи; по умолчанию —
+# сертификат проекта из ~/Developer/MapsDesktop-keys/signing.keychain-db, если он есть, иначе ad-hoc).
 set -euo pipefail
 cd "${0:A:h}"
 VERSION=${VERSION:-0.0.0}
@@ -29,7 +30,17 @@ cp -R Resources/*.lproj "$APP/Contents/Resources/"
 ditto chrome-extension "$APP/Contents/Resources/ChromeExtension"
 
 # Подпись. Постоянный сертификат нужен, чтобы после обновлений macOS помнил разрешения (геолокация).
-codesign --force --timestamp=none --sign "${SIGN_ID:--}" "$APP"
+# Локально — тем же сертификатом, что и релизы, из отдельного keychain рядом с ключами (в список keychain
+# системы он не добавлен): иначе каждая пробная сборка — новое приложение для macOS, и разрешение
+# сбрасывается и у нее, и у установленного приложения.
+KEYS=~/Developer/MapsDesktop-keys
+SIGN_ARGS=()
+if [[ -z ${SIGN_ID:-} && -f $KEYS/signing.keychain-db ]]; then
+  security unlock-keychain -p "$(cat $KEYS/signing_keychain_password.txt)" $KEYS/signing.keychain-db
+  SIGN_ID="Maps Desktop Developer"
+  SIGN_ARGS=(--keychain $KEYS/signing.keychain-db)
+fi
+codesign --force --timestamp=none "${SIGN_ARGS[@]}" --sign "${SIGN_ID:--}" "$APP"
 codesign --verify --strict "$APP"
 # Копия в build/ не должна числиться у macOS отдельным приложением — иначе ссылки могут уйти ей.
 $LSREGISTER -u "$PWD/$APP" 2>/dev/null || true

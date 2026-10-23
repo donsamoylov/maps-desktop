@@ -11,7 +11,9 @@ Mac-приложение для сайта Google Карт: Swift + AppKit + Web
   подписывает сертификатом «Maps Desktop Developer», кладет `MapsDesktop.zip`, `MapsDesktop.zip.sig`
   и `maps-desktop-chrome-extension.zip`. Приложения обновляются сами (`Sources/Updater.swift`).
 - После релиза проверять: скачать, `swift tools/update_key.swift verify …`, `codesign -dvv`, версия.
-- Ключи — `~/Developer/MapsDesktop-keys`, в репозиторий не класть. Секреты в GitHub (`MAPSDESKTOP_*`)
+- Ключи — `~/Developer/MapsDesktop-keys`, в репозиторий не класть. Там же `signing.keychain-db` (пароль в
+  `signing_keychain_password.txt`, в список keychain системы не добавлен): им `build.sh` подписывает
+  локальные сборки тем же сертификатом, что и релизы, — иначе macOS сбрасывает разрешение на геолокацию. Секреты в GitHub (`MAPSDESKTOP_*`)
   вводит владелец сам.
 - GitHub с этого Мака открывается только с включенным VPN; `git push`/`gh` запускать вне песочницы.
 
