@@ -71,7 +71,17 @@ enum DarkTheme {
         const street = () => /@[^/]*,[\d.]+a,[\d.]+y/.test(location.href);
         // Спутник — только по типу карты !3m…!1e3. Высота в метрах («…,353m») бывает и у обычной схемы,
         // а голый !1e3 — и у слоев (велодорожки — !5m1!1e3).
-        const photo = () => /!3m\d+!1e3/.test(location.href) || inStreet;
+        // Адрес запаздывает: при запуске Google сам включает спутник, если он был выбран, и успевает
+        // нарисовать первые тайлы до смены адреса (их потом не перерисовывает). Поэтому спутник узнаем и по
+        // снимкам: Google загружает их в видеокарту картинками 256×256 (blob:). Когда адрес уходит со
+        // спутника, подсказку сбрасываем.
+        let imageryAt = 0, urlPhotoWas = false;
+        const photo = () => {
+          const url = /!3m\d+!1e3/.test(location.href);
+          if (urlPhotoWas && !url) imageryAt = 0;
+          urlPhotoWas = url;
+          return url || inStreet || performance.now() - imageryAt < 3000;
+        };
 
         // Темные тени и затемняющие подложки Google (под меню, под фото) после инверсии светятся белым.
         // Перекрашиваем их в белые прямо в стилях страницы — инверсия делает их снова темными.
@@ -357,7 +367,8 @@ enum DarkTheme {
           patched.clear();
         };
 
-        setInterval(() => { document.documentElement.classList.toggle('gm-photo', photo()); scan(); markChain(); }, 400);
+        const watchPhoto = () => document.documentElement.classList.toggle('gm-photo', photo());
+        setInterval(() => { watchPhoto(); scan(); markChain(); }, 400);
         setInterval(sweep, 1500);
         // Меню и карточки открываются по клику — проверяем сразу, чтобы светлое затемнение не мелькало.
         document.addEventListener('click', () => { setTimeout(sweep, 30); setTimeout(sweep, 250); }, true);
@@ -562,6 +573,8 @@ enum DarkTheme {
           const src = args[sourceIndex];
           if (src instanceof HTMLImageElement && /streetview|cbk|panoid|ggpht|googleusercontent/.test(src.currentSrc || src.src))
             { lastPanorama = performance.now(); panoramaArrived(); }
+          if (src instanceof HTMLImageElement && src.width === 256 && src.height === 256 && /^blob:/.test(src.currentSrc || src.src))
+            imageryAt = performance.now();
           if (src && typeof src === 'object' && 'width' in src && !ArrayBuffer.isView(src)) stats.images++;
           return args;
         };
@@ -665,7 +678,7 @@ enum DarkTheme {
         };
         for (const name of ['pushState', 'replaceState']) {
           const orig = history[name];
-          history[name] = function (...a) { const r = orig.apply(this, a); check(); return r; };
+          history[name] = function (...a) { const r = orig.apply(this, a); check(); watchPhoto(); return r; };
         }
         addEventListener('popstate', check);
         setInterval(check, 300);
