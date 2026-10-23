@@ -7,12 +7,14 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
     init() {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()        // вход в аккаунт и настройки сохраняются
-        config.applicationNameForUserAgent = "Version/18.0 Safari/605.1.15"
         config.preferences.isElementFullscreenEnabled = true
         config.userContentController.addScriptMessageHandler(LocationBridge(), contentWorld: .page,
                                                              name: LocationBridge.name)
         config.userContentController.addUserScript(LocationBridge.userScript)
         webView = MapWebView(frame: .zero, configuration: config)
+        // Представляемся сайту как Chrome: Safari Google отдает карту, в которой при быстром сдвиге
+        // разом моргают все подписи.
+        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
         webView.allowsBackForwardNavigationGestures = false   // иначе горизонтальный свайп по трекпаду уходит в «назад» вместо сдвига карты
         webView.allowsMagnification = false                // щипок должен масштабировать карту, а не страницу
         // Пока страница грузится, WebKit заливает окно белым — в темной теме это вспышка. Свой фон не
