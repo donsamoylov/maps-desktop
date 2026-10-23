@@ -2,7 +2,7 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var controller: MapWindowController?
-    private let themeMenu = NSMenu(title: L("Theme"))
+    private let themeMenu = NSMenu(title: L("Appearance"))
 
     /// Обычный запуск (из Dock, Finder, Spotlight) или ради ссылки. launchIsDefaultUserInfoKey для этого
     /// не годится: при восстановлении состояния macOS отдает false и на обычном запуске.
@@ -96,10 +96,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         let view = submenu(main, L("View"))
         view.addItem(withTitle: L("Reload"), action: #selector(MapWindowController.reload(_:)), keyEquivalent: "r")
-        let theme = NSMenuItem(title: L("Theme"), action: nil, keyEquivalent: "")
-        theme.submenu = themeMenu
-        themeMenu.delegate = self
-        view.addItem(theme)
         view.addItem(.separator())
         view.addItem(withTitle: L("Zoom In"), action: #selector(MapWindowController.zoomIn(_:)), keyEquivalent: "+")
         view.addItem(withTitle: L("Zoom Out"), action: #selector(MapWindowController.zoomOut(_:)), keyEquivalent: "-")
@@ -107,6 +103,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         view.addItem(.separator())
         let full = view.addItem(withTitle: L("Enter Full Screen"), action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
         full.keyEquivalentModifierMask = [.command, .control]
+
+        // Оформление: «Авто» — как в системе (по умолчанию), или всегда светлое / темное.
+        main.addItem(withTitle: L("Appearance"), action: nil, keyEquivalent: "").submenu = themeMenu
+        themeMenu.delegate = self
 
         let go = submenu(main, L("Go"))
         go.addItem(withTitle: L("Back"), action: #selector(MapWindowController.goBack(_:)), keyEquivalent: "[")
@@ -126,14 +126,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return menu
     }
 
-    /// Меню «Перехват ссылок» собирается заново при каждом открытии — состояние берется из системы.
+    /// Меню «Оформление» собирается заново при каждом открытии — отмечен текущий выбор.
     func menuNeedsUpdate(_ menu: NSMenu) {
         if menu === themeMenu { return fillThemeMenu(menu) }
     }
 
     private func fillThemeMenu(_ menu: NSMenu) {
         menu.removeAllItems()
-        for (theme, title) in [(Theme.system, L("System")), (.light, L("Light")), (.dark, L("Dark"))] {
+        for (theme, title) in [(Theme.system, L("Auto")), (.light, L("Light")), (.dark, L("Dark"))] {
             let item = menu.addItem(withTitle: title, action: #selector(chooseTheme(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = theme.rawValue

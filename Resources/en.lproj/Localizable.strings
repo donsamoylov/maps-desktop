@@ -3,7 +3,7 @@
 "Open Settings" = "Open Settings";
 "Not Now" = "Not Now";
 "Cancel" = "Cancel";
-"Theme" = "Theme";
+"Appearance" = "Appearance";
 "About Maps Desktop" = "About Maps Desktop";
 "Hide Maps Desktop" = "Hide Maps Desktop";
 "Hide Others" = "Hide Others";
@@ -35,7 +35,7 @@
 "Window" = "Window";
 "Minimize" = "Minimize";
 "Zoom" = "Zoom";
-"System" = "System";
+"Auto" = "Auto";
 "Light" = "Light";
 "Dark" = "Dark";
 "Allow Maps Desktop to use your location in System Settings ▸ Privacy & Security ▸ Location Services." = "Allow Maps Desktop to use your location in System Settings ▸ Privacy & Security ▸ Location Services.";

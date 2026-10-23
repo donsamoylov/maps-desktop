@@ -13,16 +13,34 @@ final class MapWebView: WKWebView {
     private var dragging = false
     private var origin = NSPoint.zero       // где начат жест, в координатах окна
     private var offset = NSPoint.zero       // накопленный сдвиг пальцев
+    private var release: DispatchWorkItem?  // отпустить «мышь», если инерции после свайпа не будет
+    private var upPending = false           // «мышь» стоит на месте и вот-вот отпустится
 
     /// Окно отдает сюда каждое событие прокрутки до того, как WebKit его увидит.
     /// true — событие забрали (оно станет перетаскиванием или ждет решения), false — пусть идет как обычно.
     func handleScroll(_ event: NSEvent) -> Bool {
         guard event.hasPreciseScrollingDeltas else { return false }
 
-        // Инерция после свайпа: над картой Google докручивает сам по скорости отпускания.
-        if !event.momentumPhase.isEmpty { return target == .map }
+        // Инерция после свайпа — от macOS, как в нативных приложениях: карта докручивается тем же
+        // перетаскиванием, «мышь» отпускается, когда инерция кончилась. Своя инерция Google на отпускании
+        // с ней не совпадала: новый свайп, начатый во время нее, дергал карту назад.
+        if !event.momentumPhase.isEmpty {
+            guard target == .map else { return false }
+            coast(event)
+            return true
+        }
 
         if event.phase.contains(.began) {
+            // Пальцы легли, пока карта докручивалась: «ловим» ее — то же перетаскивание продолжается.
+            if dragging || upPending {
+                release?.cancel()
+                release = nil
+                upPending = false
+                dragging = true
+                target = .map
+                drag(event)
+                return true
+            }
             target = .undecided
             pending = [event]
             dragging = false
@@ -49,20 +67,54 @@ final class MapWebView: WKWebView {
 
     private func drag(_ event: NSEvent) {
         if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
-            if dragging { send(.leftMouseUp) }
-            dragging = false
+            // Инерция, если будет, начнется сразу; не началась — отпускаем.
+            guard dragging else { return }
+            let work = DispatchWorkItem { [weak self] in self?.finishDrag() }
+            release = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: work)
             return
         }
-        // Пальцы и карта двигаются вместе; при выключенной «естественной» прокрутке дельты перевернуты.
-        let sign: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
-        offset.x += sign * event.scrollingDeltaX
-        offset.y -= sign * event.scrollingDeltaY            // у окна ось y смотрит вверх
+        move(event)
         if !dragging {
             guard hypot(offset.x, offset.y) >= 3 else { return }   // короткое касание — не клик по карте
             send(.leftMouseDown, at: origin)
             dragging = true
         }
         send(.leftMouseDragged)
+    }
+
+    /// Пальцы и карта двигаются вместе; при выключенной «естественной» прокрутке дельты перевернуты.
+    private func move(_ event: NSEvent) {
+        let sign: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
+        offset.x += sign * event.scrollingDeltaX
+        offset.y -= sign * event.scrollingDeltaY            // у окна ось y смотрит вверх
+    }
+
+    private func coast(_ event: NSEvent) {
+        release?.cancel()
+        release = nil
+        guard dragging else { return }
+        if event.momentumPhase.contains(.ended) || event.momentumPhase.contains(.cancelled) {
+            finishDrag()
+            return
+        }
+        move(event)
+        send(.leftMouseDragged)
+    }
+
+    /// Отпустить «мышь», сначала постояв на месте, — чтобы Google не добавил своей инерции.
+    private func finishDrag() {
+        release?.cancel()
+        release = nil
+        guard dragging else { return }
+        dragging = false
+        send(.leftMouseDragged)
+        upPending = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { [weak self] in
+            guard let self, self.upPending else { return }
+            self.upPending = false
+            self.send(.leftMouseUp)
+        }
     }
 
     private func send(_ type: NSEvent.EventType, at point: NSPoint? = nil) {

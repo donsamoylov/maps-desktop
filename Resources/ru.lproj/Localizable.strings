@@ -3,7 +3,7 @@
 "Open Settings" = "Открыть настройки";
 "Not Now" = "Не сейчас";
 "Cancel" = "Отмена";
-"Theme" = "Тема";
+"Appearance" = "Оформление";
 "About Maps Desktop" = "О программе Maps Desktop";
 "Hide Maps Desktop" = "Скрыть Maps Desktop";
 "Hide Others" = "Скрыть остальные";
@@ -35,7 +35,7 @@
 "Window" = "Окно";
 "Minimize" = "Свернуть";
 "Zoom" = "Масштаб";
-"System" = "Как в системе";
+"Auto" = "Авто";
 "Light" = "Светлая";
 "Dark" = "Темная";
 "Allow Maps Desktop to use your location in System Settings ▸ Privacy & Security ▸ Location Services." = "Разрешите Maps Desktop определять местоположение: Системные настройки ▸ Конфиденциальность и безопасность ▸ Службы геолокации.";

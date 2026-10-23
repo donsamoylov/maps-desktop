@@ -10,8 +10,9 @@ enum Theme: String {
     }
 }
 
-/// Темная тема для веб-версии Google Maps: своей у сайта нет, поэтому страница перекрашивается
-/// инверсией, а фото, видео, спутник и Street View инвертируются обратно, чтобы остались в своих цветах.
+/// Темная тема для веб-версии Google Maps: своей у сайта нет. Интерфейс перекрашивается инверсией
+/// страницы; фото, видео и холст карты инвертируются обратно, а темную схему карты (цвета как в Google
+/// Картах на iPhone) рисуют шейдеры Google, в которые дописан перевод цветов.
 enum DarkTheme {
     private static let source = #"""
     (() => {
@@ -21,7 +22,7 @@ enum DarkTheme {
           html.gm-dark.gm-frame { background: transparent !important; }
           html.gm-dark img, html.gm-dark video, html.gm-dark picture,
           html.gm-dark [style*="background-image: url"], html.gm-dark [style*="background-image:url"],
-          html.gm-dark.gm-photo canvas, html.gm-dark .gm-unflip
+          html.gm-dark canvas, html.gm-dark .gm-unflip
             { filter: invert(1) hue-rotate(180deg) !important; }
           html.gm-dark .gm-unflip img, html.gm-dark .gm-unflip [style*="background-image"]
             { filter: none !important; }
@@ -31,9 +32,9 @@ enum DarkTheme {
              затемненные — серые, не в цвет темной карты: прячем, под ними уже темная WebGL-карта.
              Миниатюра кнопки «Слои» — тоже тайлы /maps/vt, но другого слоя, ее не трогаем. */
           html.gm-dark:not(.gm-photo) img[src*="/maps/vt"][src*="!1e0!2sm"] { visibility: hidden !important; }
-          /* Пустой или перерисовывающийся canvas показывает свой фон и черную подложку Google под картой —
-             после инверсии это белая вспышка. В режиме схемы делаем их белыми, то есть темными на экране. */
-          html.gm-dark:not(.gm-photo) canvas { background-color: #fff !important; }
+          /* Холст карты страница не инвертирует (он перевернут обратно, как фото), темную схему рисуют
+             шейдеры. Пустой или перерисовывающийся холст показывает свой фон — пусть он будет цвета земли. */
+          html.gm-dark:not(.gm-photo) canvas { background-color: rgb(8, 16, 41) !important; }
           /* переход в Street View и обратно: карта и фото на мгновение в одном canvas — плавно гасим его */
           html.gm-dark.gm-swap canvas { filter: brightness(0) invert(0.9) !important; }
           /* фото внутри фото (черновик и полная картинка) — второй раз не переворачиваем */
@@ -42,9 +43,6 @@ enum DarkTheme {
           html.gm-dark [style*="background-image: url"] img, html.gm-dark [style*="background-image:url"] img,
           html.gm-dark picture img
             { filter: none !important; }
-          #gm-tint { position: absolute; inset: 0; pointer-events: none; display: none;
-                     mix-blend-mode: multiply; background: rgb(226, 234, 255); }
-          html.gm-dark:not(.gm-photo) #gm-tint { display: block; }
           /* Пока карта не перерисовалась в темной палитре, страницу не показываем — под ней темный фон окна.
              Прозрачность на html не годится: фон корня браузер рисует на весь экран мимо нее. */
           html.gm-dark.gm-wait, html.gm-dark.gm-wait body { background: transparent !important; }
@@ -125,9 +123,8 @@ enum DarkTheme {
           }
         };
         let dark = false;
-        // Страница скрыта (gm-wait), пока Google не загрузил палитру карты (ее перекраска — сигнал) и карта
-        // не перерисовалась в темных цветах, — иначе при каждой загрузке мелькает светлая карта.
-        // Очистка холста сигналом не годится: ее делают и служебные холсты Google. Не дольше 3 секунд.
+        // Страница скрыта (gm-wait), пока карта не начала рисоваться темными шейдерами (см. useProgram
+        // ниже), — иначе при каждой загрузке мелькает светлая карта и заглушки. Не дольше 3 секунд.
         let revealed = false;
         const reveal = () => {
           if (revealed) return;
@@ -296,92 +293,171 @@ enum DarkTheme {
           patched.clear();
         };
 
-        // Холодный оттенок схемы, как в темной теме на iPhone: светло-голубой слой в режиме «умножение»
-        // поверх карты; после инверсии он дает темно-синий, а яркие значки почти не меняет.
-        const tint = document.createElement('div');
-        tint.id = 'gm-tint';
-        const placeTint = () => {
-          const map = [...document.querySelectorAll('canvas')]
-            .find(c => c.clientWidth * c.clientHeight > innerWidth * innerHeight * 0.3);
-          if (map && tint.previousElementSibling !== map) map.insertAdjacentElement('afterend', tint);
-        };
-
-        setInterval(() => { document.documentElement.classList.toggle('gm-photo', photo()); scan(); placeTint(); }, 400);
+        setInterval(() => { document.documentElement.classList.toggle('gm-photo', photo()); scan(); }, 400);
         setInterval(sweep, 1500);
         // Меню и карточки открываются по клику — проверяем сразу, чтобы светлое затемнение не мелькало.
         document.addEventListener('click', () => { setTimeout(sweep, 30); setTimeout(sweep, 250); }, true);
-        // Перекрашиваем только сами Карты: вход в аккаунт и прочие страницы Google темные сами по себе.
-        // Палитра темной схемы как в приложении Google Карт на iPhone: светлый цвет Google → цвет на экране.
-        // На экран canvas попадает через оттенок (#gm-tint, умножение) и инверсию страницы, поэтому
-        // в текстуру пишется прообраз: H⁻¹(цвет) / оттенок, где H — invert(0.9) + hue-rotate(180°).
+        // Темная схема — как в Google Картах на iPhone. Холст карты страница не инвертирует (CSS выше
+        // переворачивает его обратно, как фото), на экране он = 0,1 + 0,8 × цвет. Цвета переводим прямо
+        // в шейдерах Google — откуда бы цвет ни пришел (палитра, данные отрисовки, текстура):
+        //  — карта (заливки, линии, подписи): цвет из таблицы → свой темный; остальные — как их дала бы
+        //    инверсия страницы invert(0.9) + hue-rotate(180°) с холодным оттенком;
+        //  — значки и метки: цветное светлее (пастель), белый значок на пине — темный, остальное как есть;
+        //  — шейдер, которым Google копирует готовую карту на экран, не трогаем.
+        // Включено, пока темная схема; на спутнике и в светлой теме шейдеры работают как у Google.
+        // H — invert(0.9) + hue-rotate(180°): цвет на экране = HRI · (0,9 − 0,8 · оттенок · цвет).
         const HR = [[-0.574, 1.430, 0.144], [0.426, 0.430, 0.144], [0.426, 1.430, -0.856]];
+        const HRI = (() => {
+          const [[a, b, c], [d, e, f], [g, h, i]] = HR, det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+          return [[e * i - f * h, c * h - b * i, b * f - c * e], [f * g - d * i, a * i - c * g, c * d - a * f],
+            [d * h - e * g, b * g - a * h, a * e - b * d]].map(row => row.map(v => v / det));
+        })();
         const TINT = [226 / 255, 234 / 255, 1];
-        const preimage = t => HR.map((row, i) => {
-          const u = row[0] * t[0] / 255 + row[1] * t[1] / 255 + row[2] * t[2] / 255;
-          return Math.max(0, Math.min(255, Math.round((0.9 - u) / 0.8 / TINT[i] * 255)));
-        });
+        // Цвет Google (0…1) → значение для холста: (инверсия − 0,1) / 0,8 = A · цвет + B.
+        const A = HRI.map(row => row.map((k, j) => -k * TINT[j]));
+        const B = HRI.map(row => (0.9 * (row[0] + row[1] + row[2]) - 0.1) / 0.8);
+        // Свои цвета темной схемы — пипеткой с Google Карт на iPhone: светлый цвет Google → цвет на экране.
+        // Экран показывает холст как 0,1 + 0,8 × значение (компоновщик считает фильтры без обрезки;
+        // снимки страницы обрезают и выглядят иначе — по ним не калибровать). Темнее ≈ 26 на канал не бывает.
+        const screen = t => t.map(v => Math.max(0, Math.min(255, Math.round((v - 25.5) / 0.8))));
+        const LAND = screen([21, 37, 64]), WATER = screen([0, 12, 40]), PARK = screen([13, 73, 86]),
+          URBAN = screen([60, 73, 125]), BUILDING = screen([33, 46, 77]), HOSPITAL = screen([70, 60, 110]),
+          MINOR = screen([49, 56, 77]), STREET = screen([46, 66, 90]), ARTERIAL = screen([59, 80, 104]),
+          HIGHWAY = screen([71, 104, 137]),
+          // крупный масштаб: дома, тротуары, обочины — немногим светлее земли
+          BLOCK = screen([27, 40, 68]), SIDEWALK = screen([31, 44, 72]), CURB = screen([38, 48, 72]);
         const palette = [
-          [[245, 243, 243], [32, 38, 58]], [[252, 250, 248], [30, 36, 55]], [[238, 236, 236], [36, 42, 64]],
-          [[243, 246, 255], [32, 40, 62]], [[242, 239, 233], [32, 38, 58]],                      // земля
-          [[232, 234, 237], [42, 48, 72]],                                                         // здания
-          [[248, 240, 222], [46, 44, 82]], [[252, 232, 230], [58, 40, 62]],                       // застройка, больницы
-          [[216, 224, 231], [62, 72, 102]], [[207, 217, 227], [70, 80, 112]],                      // улицы
-          [[199, 208, 215], [74, 84, 116]], [[189, 200, 208], [80, 90, 124]], [[193, 203, 210], [80, 90, 124]],
-          [[144, 218, 238], [20, 32, 56]],                                                         // вода
-          [[195, 241, 213], [30, 72, 64]], [[181, 236, 202], [34, 82, 70]], [[211, 248, 226], [28, 62, 58]],
-          [[117, 199, 172], [36, 96, 80]],                                                         // парки
-        ].map(([from, to]) => [from, preimage(to)]);
-        const repaint = d => {
-          let hit = false;
-          for (let i = 0; i < d.length; i += 4)
-            for (const [f, t] of palette)
-              if (Math.abs(d[i] - f[0]) <= 1 && Math.abs(d[i + 1] - f[1]) <= 1 && Math.abs(d[i + 2] - f[2]) <= 1) {
-                d[i] = t[0]; d[i + 1] = t[1]; d[i + 2] = t[2]; hit = true; break;
-              }
-          return hit;
+          [[242, 239, 233], LAND], [[245, 243, 243], LAND], [[252, 250, 248], LAND], [[238, 236, 236], LAND],
+          [[243, 246, 255], LAND], [[245, 240, 229], LAND], [[245, 244, 244], LAND], [[237, 236, 236], LAND],
+          [[244, 243, 241], LAND],
+          [[232, 234, 237], BUILDING], [[248, 240, 222], URBAN], [[247, 236, 207], URBAN], [[252, 232, 230], HOSPITAL],
+          [[216, 224, 231], BUILDING], [[221, 223, 227], BUILDING], [[210, 213, 217], BUILDING],
+          [[207, 217, 227], MINOR], [[204, 215, 224], MINOR],
+          [[199, 208, 215], STREET], [[198, 207, 214], STREET], [[156, 165, 180], STREET], [[136, 147, 165], STREET],
+          [[189, 200, 208], ARTERIAL], [[193, 203, 210], ARTERIAL], [[154, 175, 202], ARTERIAL], [[134, 159, 189], ARTERIAL],
+          [[107, 133, 174], HIGHWAY],
+          // Крупный масштаб (ближе 100 м): здания, тротуары, велодорожки, переходы, обочины.
+          [[253, 249, 239], BLOCK], [[248, 249, 250], BLOCK], [[248, 247, 247], BLOCK], [[241, 239, 239], BLOCK],
+          [[255, 255, 255], SIDEWALK], [[241, 243, 244], SIDEWALK], [[223, 230, 238], SIDEWALK],
+          [[220, 224, 231], CURB], [[219, 224, 232], CURB], [[218, 220, 224], CURB], [[214, 217, 230], CURB],
+          [[213, 221, 235], CURB], [[215, 215, 215], CURB], [[207, 210, 214], CURB],
+          [[196, 204, 217], STREET], [[191, 204, 218], STREET], [[185, 200, 214], ARTERIAL], [[171, 185, 200], ARTERIAL],
+          [[169, 229, 197], PARK], [[127, 205, 176], PARK],
+          // Мелкий масштаб и глобус: суша, пустыни, растительность, океан, границы и трассы.
+          [[255, 255, 240], LAND], [[255, 250, 230], LAND], [[247, 243, 235], LAND], [[242, 231, 212], LAND],
+          [[207, 246, 224], PARK], [[191, 242, 213], PARK], [[175, 239, 202], PARK],
+          [[132, 215, 235], WATER],
+          [[225, 227, 231], MINOR], [[214, 222, 230], MINOR],
+          [[168, 188, 218], ARTERIAL], [[171, 188, 214], ARTERIAL], [[180, 187, 201], ARTERIAL], [[179, 186, 200], ARTERIAL],
+          [[143, 160, 188], HIGHWAY], [[123, 143, 185], HIGHWAY], [[103, 122, 170], HIGHWAY],
+          [[144, 218, 238], WATER], [[81, 194, 225], WATER], [[171, 235, 255], WATER],
+          [[195, 241, 213], PARK], [[194, 240, 212], PARK], [[181, 236, 202], PARK], [[211, 248, 226], PARK],
+          [[149, 218, 189], PARK], [[117, 199, 172], PARK],
+        ].map(([from, to]) => [from.map(v => v / 255), to.map(v => v / 255)]);
+        // Темные тона, которых нет в таблице, после инверсии серые — сдвигаем их в синеву, как на iPhone.
+        const COOL = [0.92, 0.96, 1.04];
+        const toCanvas = c => {
+          const own = palette.find(([f]) => f.every((v, i) => Math.abs(v - c[i]) < 0.006));
+          if (own) return own[1];
+          // Как gmMap в шейдерах: светлое — по ближайшему оттенку таблицы.
+          const lc = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+          if (lc > 0.28) {
+            let best = null, bd = 0.12;
+            for (const [f, t] of palette) {
+              const lf = 0.299 * f[0] + 0.587 * f[1] + 0.114 * f[2];
+              const d = Math.hypot(...f.map((v, i) => c[i] / lc - v / lf));
+              if (d < bd) { bd = d; best = t.map(v => Math.max(0, Math.min(1, v * Math.max(0.25, Math.min(1.3, lc / lf))))); }
+            }
+            if (best) return best;
+          }
+          const d = A.map((row, i) => 0.1 + 0.8 * (row[0] * c[0] + row[1] * c[1] + row[2] * c[2] + B[i]));
+          const lum = 0.299 * d[0] + 0.587 * d[1] + 0.114 * d[2];
+          const k = 1 - Math.min(1, Math.max(0, (lum - 0.25) / 0.25));
+          return d.map((v, i) => Math.max(0, Math.min(1, (v * (1 + k * (COOL[i] - 1)) - 0.1) / 0.8)));
         };
-        // Фон схемы, которым Google очищает canvas, — тоже из палитры.
-        const clearFrom = [242, 239, 233], clearTo = preimage([32, 38, 58]).map(v => v / 255);
+        const n = v => v.toFixed(5);
+        // gmMap(u, near): точное совпадение с таблицей → свой цвет. Иначе, если near и цвет светлый (заливки),
+        // — ближайший по оттенку цвет таблицы, темнее во столько раз, во сколько исходный темнее табличного:
+        // так переживают освещение глобуса и затенения рельефа. Остальное — как при инверсии страницы.
+        const lum = c => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+        const mapGLSL = 'vec3 gmMap(vec3 u,bool near){' +
+          palette.map(([f, t]) => 'if(all(lessThan(abs(u-vec3(' + f.map(n) + ')),vec3(.006))))return vec3(' + t.map(n) + ');').join('') +
+          'float lu=dot(u,vec3(.299,.587,.114));' +
+          'if(near&&lu>.28){float bd=1.;vec3 bt=vec3(0);float br=1.;vec3 cu=u/lu;' +
+          palette.map(([f, t]) => '{float d=length(cu-vec3(' + f.map(v => n(v / lum(f))) + '));if(d<bd){bd=d;bt=vec3(' + t.map(n) +
+            ');br=lu/' + n(lum(f)) + ';}}').join('') +
+          'if(bd<.12)return clamp(bt*clamp(br,.25,1.3),0.,1.);}' +
+          'vec3 d=.1+.8*vec3(' + A.map((row, i) => 'dot(vec3(' + row.map(n) + '),u)+' + n(B[i])).join(',') + ');' +
+          'd*=mix(vec3(1),vec3(' + COOL.map(n) + '),1.-smoothstep(.25,.5,dot(d,vec3(.299,.587,.114))));' +
+          'return clamp((d-.1)/.8,0.,1.);}';
+        const withMain = (src, body) => src.replace(/void\s+main\s*\(\s*\)/, 'void gmMain()') +
+          '\nuniform float gmFix;' + body;
+        // Карта. Цвет на выходе бывает умножен на прозрачность (заливки, пунктир) — тогда делим и умножаем.
+        // Подписи: у текста карты есть обводка, у текста на табличках дорог — нет; его оставляем темным.
+        const mapShader = src => {
+          const text = src.match(/(\w+)\*=(\w+)\.a;\w+\*=\w+\.a;vec4 \w+=mix\(vec4\(\2\.rgb\*\1,\1\)/);
+          const near = text ? 'false' : 'true';                    // подписи — только точно или как при инверсии
+          return withMain(src, mapGLSL + 'void main(){gmMain();if(gmFix>.5&&gl_FragColor.a>0.' + (text ? '&&' + text[2] + '.a>.01' : '') +
+            '){vec4 c=gl_FragColor;' +
+            (/\.rgb\*=\w+|\w+\*\w+\.a\*/.test(src) ? 'gl_FragColor.rgb=gmMap(clamp(c.rgb/c.a,0.,1.),' + near + ')*c.a;}}'
+              : 'gl_FragColor.rgb=gmMap(c.rgb,' + near + ');}}'));
+        };
+        // Космос вокруг глобуса: у Google светло-голубой градиент (темнее у самого глобуса). В темной схеме —
+        // почти черный, у края глобуса темно-синее свечение.
+        const isSpace = src => /if\(\w+<1\.\)discard;else\{/.test(src) && /length\(/.test(src);
+        const spaceShader = src => withMain(src, 'void main(){gmMain();if(gmFix>.5){' +
+          'float t=1.-dot(gl_FragColor.rgb,vec3(.299,.587,.114));gl_FragColor.rgb=vec3(.03,.07,.16)*t*1.6;}}');
+        // Значки. Белый значок шейдер красит по маске (цветной текстуре) — такие пиксели помечаем gmT.
+        const iconShader = src => withMain(src
+          .replace(/(if\((?:[^;{()]*?&&)?)(\w+)(\.rgb!=\w+&&\2\.rgb!=\w+\))([^;{]*;)/, '$1$2$3{gmT=gmMask($2);$4}')
+          .replace(/void\s+main\s*\(\s*\)/, 'float gmT=0.;float gmMask(vec4 t){vec3 u=t.rgb/max(t.a,.001);' +
+            'return smoothstep(.15,.35,max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b)));}void main()'),
+          'void main(){gmMain();if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;' +
+          'vec3 u=c.rgb/c.a;float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b)),l=dot(u,vec3(.299,.587,.114));' +
+          // Цветное — как пастель iPhone: самый яркий канал до максимума, чуть разбавить белым.
+          'vec3 n=u/max(max(u.r,max(u.g,u.b)),.001);' +
+          'u=mix(u,mix(n,vec3(1),.38),smoothstep(.12,.25,s));' +
+          // Желтое (звезды сохраненных мест, таблички дорог) белым не разбавляем — на iPhone оно сочное.
+          'u=mix(u,vec3(1.,.84,.21),step(.95,n.r)*step(.6,n.g)*step(n.g,.97)*step(n.b,.3)*smoothstep(.12,.25,s));' +
+          'u=mix(u,vec3(.13,.13,.15),gmT*(1.-smoothstep(.1,.2,s))*smoothstep(.55,.75,l));' +
+          // Белый полупрозрачный ореол вокруг метки (у «Дома», «Работы») на темной карте не нужен.
+          'u=mix(u,vec3(.05,.06,.09),(1.-gmT)*(1.-smoothstep(.1,.2,s))*smoothstep(.55,.75,l)*(1.-smoothstep(.5,.8,c.a)));' +
+          'gl_FragColor.rgb=u*c.a;}}');
+        const isIcon = src => /\.rgb!=\w+&&\w+\.rgb!=\w+/.test(src);
+        // Готовую картинку карты Google копирует на экран отдельным шейдером — его не трогаем.
+        const isBlit = src => /gl_FragColor=texture2D\(\w+,\w+\);gl_FragColor\.a=gl_FragColor\.a\*\w+\+\w+;/.test(src);
+        const isMatrix = src => /uniform mat4 \w+;/.test(src) && /texture2D/.test(src);
+        // В текстурах с цветовой матрицей — сетка загрузки: светло-серые линии приглушаем к цвету земли.
+        const matrixShader = src => withMain(src, 'void main(){gmMain();' +
+          'if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;vec3 u=c.rgb/c.a;' +
+          'float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b));' +
+          'u=mix(u,vec3(' + LAND.map(v => n(v / 255)).join(',') + '),.75*(1.-smoothstep(.06,.14,s))*smoothstep(.2,.45,dot(u,vec3(.299,.587,.114))));' +
+          'gl_FragColor.rgb=u*c.a;}}');
+        const fixedShaders = new WeakSet(), fixedPrograms = new WeakMap(), mapPrograms = new WeakSet();
+        const mapShaders = new WeakSet();
         for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
           if (!proto) continue;
           const clear = proto.clearColor;
           proto.clearColor = function (r, g, b, a) {
-            if (dark && !photo() && Math.abs(r * 255 - clearFrom[0]) < 2 && Math.abs(g * 255 - clearFrom[1]) < 2 &&
-                Math.abs(b * 255 - clearFrom[2]) < 2) return clear.call(this, clearTo[0], clearTo[1], clearTo[2], a);
+            if (dark && !photo()) [r, g, b] = toCanvas([r, g, b]);
             return clear.call(this, r, g, b, a);
           };
-        }
-        // Значки, пины и рамки меток Google рисует шейдерами, и тень он берет не из текстуры, а из своих
-        // данных: полупрозрачный темный ореол вокруг метки. После инверсии страницы он светится. В эти
-        // шейдеры дописываем обратную инверсию (как preimage выше, но для цвета с уже учтенной
-        // прозрачностью) только для теней — темного полупрозрачного: на экране они остаются темными.
-        // Цвета (красный пин, значки) и непрозрачное не трогаем — их инверсия страницы и так дает верно.
-        // Шейдеры узнаем по проверке «текстура не белая» перед окраской и по цветовой матрице.
-        // Включено, пока темная схема; на спутнике и в светлой теме — выключено.
-        const fixedShaders = new WeakSet(), fixedPrograms = new WeakMap();
-        const fixGLSL = src => src.replace(/void\s+main\s*\(\s*\)/, 'void gmMain()') +
-          '\nuniform float gmFix;void main(){gmMain();if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;' +
-          'vec3 u=c.rgb/c.a;float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b)),l=dot(u,vec3(.299,.587,.114));' +
-          'float k=(1.-smoothstep(.06,.16,s))*(1.-smoothstep(.35,.55,l))*(1.-smoothstep(.45,.7,c.a));' +
-          'vec3 m=vec3(' + HR.map(r => 'dot(vec3(' + r.join(',') + '),c.rgb)').join(',') + ');' +
-          'vec3 x=(.9*c.a-m)/.8/vec3(' + TINT.map(v => v.toFixed(4)).join(',') + ');' +
-          'gl_FragColor.rgb=mix(c.rgb,clamp(x,0.,c.a),k);}}';
-        for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
-          if (!proto) continue;
           const source = proto.shaderSource, attach = proto.attachShader, use = proto.useProgram;
           proto.shaderSource = function (sh, src) {
-            // Значки (проверка «текстура не белая») и значки с цветовой матрицей — ими Google рисует,
-            // например, выбранный пин во время анимации.
-            if (typeof src === 'string' && /gl_FragColor/.test(src) &&
-                (/\.rgb!=\w+&&\w+\.rgb!=\w+/.test(src) || /uniform mat4 \w+;/.test(src) && /texture2D/.test(src)) &&
+            if (typeof src === 'string' && /gl_FragColor/.test(src) && !isBlit(src) &&
                 this.getShaderParameter(sh, this.SHADER_TYPE) === this.FRAGMENT_SHADER) {
               fixedShaders.add(sh);
-              return source.call(this, sh, fixGLSL(src));
+              if (isMatrix(src)) return source.call(this, sh, matrixShader(src));
+              if (isIcon(src)) return source.call(this, sh, iconShader(src));
+              if (isSpace(src)) return source.call(this, sh, spaceShader(src));
+              mapShaders.add(sh);
+              return source.call(this, sh, mapShader(src));
             }
             return source.call(this, sh, src);
           };
           proto.attachShader = function (p, sh) {
             if (fixedShaders.has(sh)) fixedPrograms.set(p, null);
+            if (mapShaders.has(sh)) mapPrograms.add(p);
             return attach.call(this, p, sh);
           };
           proto.useProgram = function (p) {
@@ -389,7 +465,9 @@ enum DarkTheme {
             if (p && fixedPrograms.has(p)) {
               let loc = fixedPrograms.get(p);
               if (loc === null) { loc = this.getUniformLocation(p, 'gmFix'); fixedPrograms.set(p, loc); }
-              if (loc) this.uniform1f(loc, dark && !photo() ? 1 : 0);
+              const on = dark && !photo();
+              if (loc) this.uniform1f(loc, on ? 1 : 0);
+              if (on && mapPrograms.has(p)) reveal();          // карта уже рисуется темной
             }
             return r;
           };
@@ -397,37 +475,23 @@ enum DarkTheme {
         let lastPanorama = 0;
         let panoramaArrived = () => {};
         const stats = window.__gmTextures = { calls: 0, images: 0 };
-        const touchUp = (gl, args, sourceIndex, formatIndex, typeIndex, widthIndex = -1) => {
+        // Фото Street View, загруженные в видеокарту, — сигнал входа в Street View.
+        const touchUp = (args, sourceIndex) => {
           stats.calls++;
-          if (!dark || photo()) return args;
           const src = args[sourceIndex];
-          if (!src) return args;
-          // Сырые буферы не трогаем: в них бывают не картинки, а данные (узоры, маски), и правка их портит.
-          if (ArrayBuffer.isView(src)) {
-            // Палитра схемы — узкие RGBA-текстуры (1×N): заменяем цвета заливок на палитру темной карты.
-            const w = widthIndex >= 0 ? args[widthIndex] : 0;
-            if (src instanceof Uint8Array && args[formatIndex] === gl.RGBA && w > 0 && w <= 4 && src.length % 4 === 0) {
-              const copy = new Uint8Array(src);
-              if (repaint(copy)) { reveal(); const out = args.slice(); out[sourceIndex] = copy; return out; }
-            }
-            return args;
-          }
-          if (typeof src !== 'object' || !('width' in src)) return args;
           if (src instanceof HTMLImageElement && /streetview|cbk|panoid|ggpht|googleusercontent/.test(src.currentSrc || src.src))
             { lastPanorama = performance.now(); panoramaArrived(); }
-          stats.images++;
+          if (src && typeof src === 'object' && 'width' in src && !ArrayBuffer.isView(src)) stats.images++;
           return args;
         };
         for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
           if (!proto) continue;
           const tex = proto.texImage2D, sub = proto.texSubImage2D;
           // texImage2D(target, level, internalformat, format, type, source) или (…, width, height, border, format, type, pixels)
-          proto.texImage2D = function (...a) {
-            return tex.apply(this, a.length === 6 ? touchUp(this, a, 5, 3, 4) : a.length >= 9 ? touchUp(this, a, 8, 6, 7, 3) : a);
-          };
-          // texSubImage2D(target, level, x, y, format, type, source) или (…, width, height, format, type, pixels)
+          proto.texImage2D = function (...a) { return tex.apply(this, a.length === 6 ? touchUp(a, 5) : a); };
+          // texSubImage2D(target, level, x, y, format, type, source)
           proto.texSubImage2D = function (...a) {
-            return sub.apply(this, a.length === 7 ? touchUp(this, a, 6, 4, 5) : a.length >= 9 ? touchUp(this, a, 8, 6, 7, 4) : a);
+            return sub.apply(this, a.length === 7 ? touchUp(a, 6) : a);
           };
         }
 
