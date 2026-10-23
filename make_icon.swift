@@ -60,9 +60,10 @@ for (size, name) in [(16,"16x16"),(32,"16x16@2x"),(32,"32x32"),(64,"32x32@2x"),(
     ctx.drawLinearGradient(shade, start: CGPoint(x: 0, y: body.maxY), end: CGPoint(x: 0, y: body.minY), options: [])
     ctx.restoreGState()
 
-    // Метка: высота ≈ 62 % тела.
-    let r = body.width * 0.205
-    let center = CGPoint(x: body.midX, y: body.midY + r * 0.62)
+    // Метка: высота ≈ 61 % тела, ровно посередине плашки (от верха головки до острия). По центру масс
+    // она смотрится низко — внизу только тонкое острие.
+    let r = body.width * 0.225
+    let center = CGPoint(x: body.midX, y: body.midY + r * 0.35)
     let pin = pinPath(center: center, radius: r)
     ctx.saveGState()
     ctx.setShadow(offset: CGSize(width: 0, height: -s * 0.01), blur: s * 0.03, color: rgb(0x000000, 0.45))

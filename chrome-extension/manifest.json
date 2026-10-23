@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Open in Maps Desktop",
   "short_name": "Maps Desktop",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Open Google Maps links in the Maps Desktop app for Mac instead of a browser tab. One click to pause.",
   "permissions": [
     "webNavigation",
