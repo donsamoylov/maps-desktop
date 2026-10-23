@@ -529,17 +529,29 @@ enum DarkTheme {
             if (mapShaders.has(sh)) mapPrograms.add(p);
             return attach.call(this, p, sh);
           };
+          // gmFix ставим перед каждым рисованием: Google не всегда заново выбирает программу, а режим
+          // (спутник, Street View, светлая тема) мог смениться с прошлого раза.
+          const fix = (gl, p) => {
+            let st = fixedPrograms.get(p);
+            if (st === null) { st = { loc: gl.getUniformLocation(p, 'gmFix'), on: -1 }; fixedPrograms.set(p, st); }
+            const on = dark && !photo() ? 1 : 0;
+            if (st.loc && st.on !== on) { gl.uniform1f(st.loc, on); st.on = on; }
+            if (on && mapPrograms.has(p)) reveal();          // карта уже рисуется темной
+          };
           proto.useProgram = function (p) {
             const r = use.call(this, p);
-            if (p && fixedPrograms.has(p)) {
-              let loc = fixedPrograms.get(p);
-              if (loc === null) { loc = this.getUniformLocation(p, 'gmFix'); fixedPrograms.set(p, loc); }
-              const on = dark && !photo();
-              if (loc) this.uniform1f(loc, on ? 1 : 0);
-              if (on && mapPrograms.has(p)) reveal();          // карта уже рисуется темной
-            }
+            this.__gmProgram = p;
+            if (p && fixedPrograms.has(p)) fix(this, p);
             return r;
           };
+          for (const name of ['drawArrays', 'drawElements']) {
+            const draw = proto[name];
+            proto[name] = function (...a) {
+              const p = this.__gmProgram;
+              if (p && fixedPrograms.has(p)) fix(this, p);
+              return draw.apply(this, a);
+            };
+          }
         }
         let lastPanorama = 0;
         let panoramaArrived = () => {};
