@@ -27,6 +27,9 @@ enum DarkTheme {
             { filter: none !important; }
           html.gm-dark .gm-reflip { filter: invert(1) hue-rotate(180deg) !important; }
           html.gm-dark .gm-unflip canvas { filter: none !important; }
+          /* Растровые тайлы схемы — заглушка, пока не готова WebGL-карта. Светлые, а затемненные — серые,
+             не в цвет темной карты: прячем, под ними уже темная WebGL-карта. */
+          html.gm-dark:not(.gm-photo) img[src*="/maps/vt"] { visibility: hidden !important; }
           /* Пустой или перерисовывающийся canvas показывает свой фон и черную подложку Google под картой —
              после инверсии это белая вспышка. В режиме схемы делаем их белыми, то есть темными на экране. */
           html.gm-dark:not(.gm-photo) canvas { background-color: #fff !important; }
@@ -40,7 +43,11 @@ enum DarkTheme {
             { filter: none !important; }
           #gm-tint { position: absolute; inset: 0; pointer-events: none; display: none;
                      mix-blend-mode: multiply; background: rgb(226, 234, 255); }
-          html.gm-dark:not(.gm-photo) #gm-tint { display: block; }`;
+          html.gm-dark:not(.gm-photo) #gm-tint { display: block; }
+          /* Пока карта не перерисовалась в темной палитре, страницу не показываем — под ней темный фон окна.
+             Прозрачность на html не годится: фон корня браузер рисует на весь экран мимо нее. */
+          html.gm-dark.gm-wait, html.gm-dark.gm-wait body { background: transparent !important; }
+          html.gm-dark.gm-wait body { visibility: hidden !important; }`;
         const style = document.createElement('style');
         style.id = 'gm-dark-style';
         style.textContent = css;
@@ -117,6 +124,16 @@ enum DarkTheme {
           }
         };
         let dark = false;
+        // Страница скрыта (gm-wait), пока Google не загрузил палитру карты (ее перекраска — сигнал) и карта
+        // не перерисовалась в темных цветах, — иначе при каждой загрузке мелькает светлая карта.
+        // Очистка холста сигналом не годится: ее делают и служебные холсты Google. Не дольше 3 секунд.
+        let revealed = false;
+        const reveal = () => {
+          if (revealed) return;
+          revealed = true;
+          setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(() =>
+            document.documentElement.classList.remove('gm-wait'))), 50);
+        };
         const paint = () => { for (const o of overrides) o.style.setProperty(o.prop, dark ? o.dark : o.light, o.prio); };
         const scan = () => {
           const before = overrides.length;
@@ -381,7 +398,7 @@ enum DarkTheme {
             const w = widthIndex >= 0 ? args[widthIndex] : 0;
             if (src instanceof Uint8Array && args[formatIndex] === gl.RGBA && w > 0 && w <= 4 && src.length % 4 === 0) {
               const copy = new Uint8Array(src);
-              if (repaint(copy)) { const out = args.slice(); out[sourceIndex] = copy; return out; }
+              if (repaint(copy)) { reveal(); const out = args.slice(); out[sourceIndex] = copy; return out; }
             }
             return args;
           }
@@ -418,6 +435,13 @@ enum DarkTheme {
         let wanted = false, inStreet = street();
         const apply = () => {
           dark = wanted && isMaps;
+          if (dark && !revealed && !photo() && !googlePanel) {
+            document.documentElement.classList.add('gm-wait');
+            setTimeout(reveal, 3000);
+          } else {
+            revealed = true;
+            document.documentElement.classList.remove('gm-wait');
+          }
           document.documentElement.classList.toggle('gm-dark', dark);
           document.documentElement.classList.toggle('gm-frame', dark && googlePanel);
           document.documentElement.classList.toggle('gm-photo', photo());
