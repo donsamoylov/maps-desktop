@@ -27,9 +27,10 @@ enum DarkTheme {
             { filter: none !important; }
           html.gm-dark .gm-reflip { filter: invert(1) hue-rotate(180deg) !important; }
           html.gm-dark .gm-unflip canvas { filter: none !important; }
-          /* Растровые тайлы схемы — заглушка, пока не готова WebGL-карта. Светлые, а затемненные — серые,
-             не в цвет темной карты: прячем, под ними уже темная WebGL-карта. */
-          html.gm-dark:not(.gm-photo) img[src*="/maps/vt"] { visibility: hidden !important; }
+          /* Растровые тайлы схемы (слой !1e0!2sm) — заглушка, пока не готова WebGL-карта. Светлые, а
+             затемненные — серые, не в цвет темной карты: прячем, под ними уже темная WebGL-карта.
+             Миниатюра кнопки «Слои» — тоже тайлы /maps/vt, но другого слоя, ее не трогаем. */
+          html.gm-dark:not(.gm-photo) img[src*="/maps/vt"][src*="!1e0!2sm"] { visibility: hidden !important; }
           /* Пустой или перерисовывающийся canvas показывает свой фон и черную подложку Google под картой —
              после инверсии это белая вспышка. В режиме схемы делаем их белыми, то есть темными на экране. */
           html.gm-dark:not(.gm-photo) canvas { background-color: #fff !important; }
