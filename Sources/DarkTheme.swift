@@ -311,40 +311,6 @@ enum DarkTheme {
         // Меню и карточки открываются по клику — проверяем сразу, чтобы светлое затемнение не мелькало.
         document.addEventListener('click', () => { setTimeout(sweep, 30); setTimeout(sweep, 250); }, true);
         // Перекрашиваем только сами Карты: вход в аккаунт и прочие страницы Google темные сами по себе.
-        // Пины на карте рисуются через WebGL из бесцветных картинок: светлый силуэт, вокруг —
-        // полупрозрачная черная тень, между ними — полупрозрачная серая кромка; цвет пину Google дает
-        // при рисовании. После инверсии тень и кромка светятся. В темной теме перекрашиваем все
-        // полупрозрачные бесцветные пиксели таких картинок в белые с той же прозрачностью — инверсия
-        // делает их темными. Трогаем только картинки, где есть кольцо тени (≥3% слабых черных
-        // пикселей), чтобы не задеть текст и значки. Тень усиливаем в 1,6 раза — на темной карте она
-        // слабее заметна.
-        const shadowless = px => {
-          let faint = 0;
-          for (let i = 3; i < px.length; i += 4)
-            if (px[i] > 0 && px[i] < 80 && px[i - 3] < 40 && px[i - 2] < 40 && px[i - 1] < 40) faint++;
-          if (faint < px.length / 4 * 0.03) return false;
-          for (let i = 0; i < px.length; i += 4) {
-            const a = px[i + 3], r = px[i], g = px[i + 1], b = px[i + 2];
-            if (a === 0 || a >= 250 || Math.max(r, g, b) - Math.min(r, g, b) > 12) continue;
-            const shade = Math.max(r, g, b) < 70 ? Math.min(Math.round(a * 1.6), 220) : a;
-            px[i + 3] = shade;
-            px[i] = px[i + 1] = px[i + 2] = 255;
-          }
-          return true;
-        };
-        const fromImage = src => {
-          const w = src.width || src.naturalWidth || src.videoWidth, h = src.height || src.naturalHeight || src.videoHeight;
-          if (!w || !h || w * h > 1024 * 1024 || src instanceof HTMLVideoElement) return null;   // большие — снимки, не значки
-          const c = document.createElement('canvas');
-          c.width = w; c.height = h;
-          const ctx = c.getContext('2d', { willReadFrequently: true });
-          if (src instanceof ImageData) ctx.putImageData(src, 0, 0); else ctx.drawImage(src, 0, 0);
-          let data;
-          try { data = ctx.getImageData(0, 0, w, h); } catch (e) { return null; }      // чужой домен без CORS
-          if (!shadowless(data.data)) return null;
-          ctx.putImageData(data, 0, 0);
-          return c;
-        };
         // Палитра темной схемы как в приложении Google Карт на iPhone: светлый цвет Google → цвет на экране.
         // На экран canvas попадает через оттенок (#gm-tint, умножение) и инверсию страницы, поэтому
         // в текстуру пишется прообраз: H⁻¹(цвет) / оттенок, где H — invert(0.9) + hue-rotate(180°).
@@ -385,9 +351,52 @@ enum DarkTheme {
             return clear.call(this, r, g, b, a);
           };
         }
+        // Значки, пины и рамки меток Google рисует шейдерами, и тень он берет не из текстуры, а из своих
+        // данных: полупрозрачный темный ореол вокруг метки. После инверсии страницы он светится. В эти
+        // шейдеры дописываем обратную инверсию (как preimage выше, но для цвета с уже учтенной
+        // прозрачностью) только для теней — темного полупрозрачного: на экране они остаются темными.
+        // Цвета (красный пин, значки) и непрозрачное не трогаем — их инверсия страницы и так дает верно.
+        // Шейдеры узнаем по проверке «текстура не белая» перед окраской и по цветовой матрице.
+        // Включено, пока темная схема; на спутнике и в светлой теме — выключено.
+        const fixedShaders = new WeakSet(), fixedPrograms = new WeakMap();
+        const fixGLSL = src => src.replace(/void\s+main\s*\(\s*\)/, 'void gmMain()') +
+          '\nuniform float gmFix;void main(){gmMain();if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;' +
+          'vec3 u=c.rgb/c.a;float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b)),l=dot(u,vec3(.299,.587,.114));' +
+          'float k=(1.-smoothstep(.06,.16,s))*(1.-smoothstep(.35,.55,l))*(1.-smoothstep(.45,.7,c.a));' +
+          'vec3 m=vec3(' + HR.map(r => 'dot(vec3(' + r.join(',') + '),c.rgb)').join(',') + ');' +
+          'vec3 x=(.9*c.a-m)/.8/vec3(' + TINT.map(v => v.toFixed(4)).join(',') + ');' +
+          'gl_FragColor.rgb=mix(c.rgb,clamp(x,0.,c.a),k);}}';
+        for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
+          if (!proto) continue;
+          const source = proto.shaderSource, attach = proto.attachShader, use = proto.useProgram;
+          proto.shaderSource = function (sh, src) {
+            // Значки (проверка «текстура не белая») и значки с цветовой матрицей — ими Google рисует,
+            // например, выбранный пин во время анимации.
+            if (typeof src === 'string' && /gl_FragColor/.test(src) &&
+                (/\.rgb!=\w+&&\w+\.rgb!=\w+/.test(src) || /uniform mat4 \w+;/.test(src) && /texture2D/.test(src)) &&
+                this.getShaderParameter(sh, this.SHADER_TYPE) === this.FRAGMENT_SHADER) {
+              fixedShaders.add(sh);
+              return source.call(this, sh, fixGLSL(src));
+            }
+            return source.call(this, sh, src);
+          };
+          proto.attachShader = function (p, sh) {
+            if (fixedShaders.has(sh)) fixedPrograms.set(p, null);
+            return attach.call(this, p, sh);
+          };
+          proto.useProgram = function (p) {
+            const r = use.call(this, p);
+            if (p && fixedPrograms.has(p)) {
+              let loc = fixedPrograms.get(p);
+              if (loc === null) { loc = this.getUniformLocation(p, 'gmFix'); fixedPrograms.set(p, loc); }
+              if (loc) this.uniform1f(loc, dark && !photo() ? 1 : 0);
+            }
+            return r;
+          };
+        }
         let lastPanorama = 0;
         let panoramaArrived = () => {};
-        const stats = window.__gmTextures = { calls: 0, buffers: 0, images: 0, fixed: 0, skipped: 0 };
+        const stats = window.__gmTextures = { calls: 0, images: 0 };
         const touchUp = (gl, args, sourceIndex, formatIndex, typeIndex, widthIndex = -1) => {
           stats.calls++;
           if (!dark || photo()) return args;
@@ -407,10 +416,7 @@ enum DarkTheme {
           if (src instanceof HTMLImageElement && /streetview|cbk|panoid|ggpht|googleusercontent/.test(src.currentSrc || src.src))
             { lastPanorama = performance.now(); panoramaArrived(); }
           stats.images++;
-          const fixed = fromImage(src);
-          if (!fixed) { stats.skipped++; return args; }
-          stats.fixed++;
-          const out = args.slice(); out[sourceIndex] = fixed; return out;
+          return args;
         };
         for (const proto of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
           if (!proto) continue;
