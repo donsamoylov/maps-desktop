@@ -18,7 +18,16 @@ enum DarkTheme {
     (() => {
       if (!window.__gmDark) {
         const css = `
-          html.gm-dark { filter: invert(0.9) hue-rotate(180deg) !important; background: #fff !important; }
+          html.gm-dark:not(.gm-split) { filter: invert(0.9) hue-rotate(180deg) !important; background: #fff !important; }
+          /* Холст карты — вне фильтра страницы (иначе цвета на нем не ярче 0,9 и не темнее 0,1): фильтр
+             получает все, что рядом с цепочкой предков холста (gm-chain), а сама цепочка и холст — нет. */
+          html.gm-dark.gm-split, html.gm-dark.gm-split .gm-chain
+            { background-color: rgb(26, 26, 26) !important; background-image: none !important; }
+          html.gm-dark.gm-split .gm-flt { filter: invert(0.9) hue-rotate(180deg) !important; }
+          /* картинки и «не инвертируемое» прямо рядом с цепочкой — без фильтра вовсе */
+          html.gm-dark.gm-split.gm-split .gm-flt:is(img, video, picture, canvas, .gm-unflip,
+            [style*="background-image: url"], [style*="background-image:url"])
+            { filter: none !important; }
           html.gm-dark.gm-frame { background: transparent !important; }
           html.gm-dark img, html.gm-dark video, html.gm-dark picture,
           html.gm-dark [style*="background-image: url"], html.gm-dark [style*="background-image:url"],
@@ -35,8 +44,12 @@ enum DarkTheme {
           /* Холст карты страница не инвертирует (он перевернут обратно, как фото), темную схему рисуют
              шейдеры. Пустой или перерисовывающийся холст показывает свой фон — пусть он будет цвета земли. */
           html.gm-dark:not(.gm-photo) canvas { background-color: rgb(8, 16, 41) !important; }
+          html.gm-dark.gm-split canvas.gm-map { filter: none !important; }
+          /* где Google на холсте не рисует (под левой колонкой) — цвет колонки */
+          html.gm-dark.gm-split:not(.gm-photo) canvas.gm-map { background-color: rgb(30, 30, 30) !important; }
           /* переход в Street View и обратно: карта и фото на мгновение в одном canvas — плавно гасим его */
           html.gm-dark.gm-swap canvas { filter: brightness(0) invert(0.9) !important; }
+          html.gm-dark.gm-split.gm-swap canvas.gm-map { filter: brightness(0) invert(0.1) !important; }
           /* фото внутри фото (черновик и полная картинка) — второй раз не переворачиваем */
           html.gm-dark [style*="background-image: url"] [style*="background-image: url"], html.gm-dark [style*="background-image: url"] [style*="background-image:url"], html.gm-dark [style*="background-image:url"] [style*="background-image: url"], html.gm-dark [style*="background-image:url"] [style*="background-image:url"]
             { filter: none !important; }
@@ -164,6 +177,7 @@ enum DarkTheme {
         // и так рисует темными — их тоже возвращаем в исходные цвета.
         const streetFlipped = new Map();   // элемент → его исходный inline-фон, если мы его меняли
         const visit = (e, big) => {
+          if (e.classList.contains('gm-chain') || e.classList.contains('gm-map')) return;   // вне фильтра страницы
           if (e.tagName === 'IFRAME') {
             // Фрейм чужого источника (панели Google: аккаунт, приложения) красит себя сам этим же скриптом —
             // инверсия страницы поверх вернула бы его в светлый. Адрес в атрибуте src бывает about:blank,
@@ -264,7 +278,57 @@ enum DarkTheme {
         // всплывающие панели (полоска слоев и т.п.) на мгновение мелькают в исходных цветах.
         const pending = new Set();
         let queued = false;
+        // Цепочка от холста карты до корня: она остается без фильтра страницы (см. CSS gm-split).
+        let mapCanvas = null;
+        const markChain = () => {
+          if (mapCanvas && mapCanvas.isConnected && mapCanvas.clientWidth * mapCanvas.clientHeight > innerWidth * innerHeight * 0.3) return;
+          const c = [...document.querySelectorAll('canvas')]
+            .find(c => c.clientWidth * c.clientHeight > innerWidth * innerHeight * 0.3);
+          if (!c || window !== window.top) return;
+          document.querySelectorAll('.gm-chain, .gm-flt, .gm-wrap').forEach(e => e.classList.remove('gm-chain', 'gm-flt', 'gm-wrap'));
+          mapCanvas?.classList.remove('gm-map');
+          mapCanvas = c;
+          c.classList.add('gm-map');
+          for (let e = c.parentElement; e; e = e.parentElement) {
+            e.classList.add('gm-chain');
+            // фон, который перекраска поставила, пока элемент был под фильтром, больше не нужен
+            const saved = patched.get(e);
+            if (saved && 'background-color' in saved) {
+              saved['background-color'] ? e.style.setProperty('background-color', saved['background-color']) : e.style.removeProperty('background-color');
+              delete saved['background-color'];
+            }
+          }
+          document.documentElement.classList.add('gm-split');
+          refilter();
+        };
+        // Кому ставить фильтр (gm-flt): соседям цепочки. Но фильтр делает элемент отдельным слоем, и тогда
+        // вложенные панели с z-index уже не поднимаются над картой. Поэтому прозрачные обертки без своего
+        // слоя (static, без z-index) не фильтруем, а спускаемся к их детям.
+        const wrapper = e => {
+          if (e.childElementCount === 0) return false;
+          const cs = getComputedStyle(e);
+          return cs.position === 'static' && cs.zIndex === 'auto' && cs.opacity === '1' && cs.transform === 'none' &&
+            /rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor) && cs.backgroundImage === 'none' &&
+            cs.boxShadow === 'none' && cs.borderTopWidth === '0px' && cs.borderBottomWidth === '0px';
+        };
+        const target = e => {
+          if (e.classList.contains('gm-chain') || e.classList.contains('gm-map') || e.classList.contains('gm-flt')) return;
+          if (/^(SCRIPT|STYLE|LINK|META|NOSCRIPT|TEMPLATE)$/.test(e.tagName)) return;
+          if (wrapper(e)) { e.classList.add('gm-wrap'); for (const c of e.children) target(c); }
+          else e.classList.add('gm-flt');
+        };
+        const refilter = () => {
+          if (!mapCanvas) return;
+          for (const chain of document.querySelectorAll('.gm-chain'))
+            for (const c of chain.children) target(c);
+          for (const w of document.querySelectorAll('.gm-wrap'))
+            for (const c of w.children) target(c);
+        };
         new MutationObserver(list => {
+          markChain();
+          if (mapCanvas) for (const m of list)
+            if (m.type === 'childList' && m.target.nodeType === 1 && /gm-(chain|wrap)/.test(m.target.className))
+              m.addedNodes.forEach(n => n.nodeType === 1 && target(n));
           if (!dark) return;
           if (inStreet && swapping === null) queueMicrotask(() => check());
           for (const m of list) {
@@ -293,15 +357,16 @@ enum DarkTheme {
           patched.clear();
         };
 
-        setInterval(() => { document.documentElement.classList.toggle('gm-photo', photo()); scan(); }, 400);
+        setInterval(() => { document.documentElement.classList.toggle('gm-photo', photo()); scan(); markChain(); }, 400);
         setInterval(sweep, 1500);
         // Меню и карточки открываются по клику — проверяем сразу, чтобы светлое затемнение не мелькало.
         document.addEventListener('click', () => { setTimeout(sweep, 30); setTimeout(sweep, 250); }, true);
-        // Темная схема — как в Google Картах на iPhone. Холст карты страница не инвертирует (CSS выше
-        // переворачивает его обратно, как фото), на экране он = 0,1 + 0,8 × цвет. Цвета переводим прямо
-        // в шейдерах Google — откуда бы цвет ни пришел (палитра, данные отрисовки, текстура):
-        //  — карта (заливки, линии, подписи): цвет из таблицы → свой темный; остальные — как их дала бы
-        //    инверсия страницы invert(0.9) + hue-rotate(180°) с холодным оттенком;
+        // Темная схема — как в Google Картах на iPhone. Холст карты стоит вне фильтра страницы (gm-split),
+        // так что его цвет — ровно цвет на экране. Цвета переводим прямо в шейдерах Google — откуда бы цвет
+        // ни пришел (палитра, данные отрисовки, текстура):
+        //  — карта (заливки, линии, подписи): цвет из таблицы → свой темный; насыщенное, чего нет в таблице
+        //    (маршрут, пробки, транспорт), — как в светлой теме; остальное — как его дала бы инверсия
+        //    страницы invert(0.9) + hue-rotate(180°) с холодным оттенком;
         //  — значки и метки: цветное светлее (пастель), белый значок на пине — темный, остальное как есть;
         //  — шейдер, которым Google копирует готовую карту на экран, не трогаем.
         // Включено, пока темная схема; на спутнике и в светлой теме шейдеры работают как у Google.
@@ -313,19 +378,16 @@ enum DarkTheme {
             [d * h - e * g, b * g - a * h, a * e - b * d]].map(row => row.map(v => v / det));
         })();
         const TINT = [226 / 255, 234 / 255, 1];
-        // Цвет Google (0…1) → значение для холста: (инверсия − 0,1) / 0,8 = A · цвет + B.
+        // Цвет Google (0…1) → как его показала бы инверсия страницы: 0,1 + 0,8 · (A · цвет + B).
         const A = HRI.map(row => row.map((k, j) => -k * TINT[j]));
         const B = HRI.map(row => (0.9 * (row[0] + row[1] + row[2]) - 0.1) / 0.8);
         // Свои цвета темной схемы — пипеткой с Google Карт на iPhone: светлый цвет Google → цвет на экране.
-        // Экран показывает холст как 0,1 + 0,8 × значение (компоновщик считает фильтры без обрезки;
-        // снимки страницы обрезают и выглядят иначе — по ним не калибровать). Темнее ≈ 26 на канал не бывает.
-        const screen = t => t.map(v => Math.max(0, Math.min(255, Math.round((v - 25.5) / 0.8))));
-        const LAND = screen([21, 37, 64]), WATER = screen([0, 12, 40]), PARK = screen([13, 73, 86]),
-          URBAN = screen([60, 73, 125]), BUILDING = screen([33, 46, 77]), HOSPITAL = screen([70, 60, 110]),
-          MINOR = screen([49, 56, 77]), STREET = screen([46, 66, 90]), ARTERIAL = screen([59, 80, 104]),
-          HIGHWAY = screen([71, 104, 137]),
+        const LAND = [21, 37, 64], WATER = [0, 12, 40], PARK = [13, 73, 86],
+          URBAN = [60, 73, 125], BUILDING = [33, 46, 77], HOSPITAL = [70, 60, 110],
+          MINOR = [49, 56, 77], STREET = [46, 66, 90], ARTERIAL = [59, 80, 104],
+          HIGHWAY = [71, 104, 137],
           // крупный масштаб: дома, тротуары, обочины — немногим светлее земли
-          BLOCK = screen([27, 40, 68]), SIDEWALK = screen([31, 44, 72]), CURB = screen([38, 48, 72]);
+          BLOCK = [27, 40, 68], SIDEWALK = [31, 44, 72], CURB = [38, 48, 72];
         const palette = [
           [[242, 239, 233], LAND], [[245, 243, 243], LAND], [[252, 250, 248], LAND], [[238, 236, 236], LAND],
           [[243, 246, 255], LAND], [[245, 240, 229], LAND], [[245, 244, 244], LAND], [[237, 236, 236], LAND],
@@ -373,7 +435,7 @@ enum DarkTheme {
           const d = A.map((row, i) => 0.1 + 0.8 * (row[0] * c[0] + row[1] * c[1] + row[2] * c[2] + B[i]));
           const lum = 0.299 * d[0] + 0.587 * d[1] + 0.114 * d[2];
           const k = 1 - Math.min(1, Math.max(0, (lum - 0.25) / 0.25));
-          return d.map((v, i) => Math.max(0, Math.min(1, (v * (1 + k * (COOL[i] - 1)) - 0.1) / 0.8)));
+          return d.map((v, i) => Math.max(0, Math.min(1, v * (1 + k * (COOL[i] - 1)))));
         };
         const n = v => v.toFixed(5);
         // gmMap(u, near): точное совпадение с таблицей → свой цвет. Иначе, если near и цвет светлый (заливки),
@@ -387,16 +449,11 @@ enum DarkTheme {
           palette.map(([f, t]) => '{float d=length(cu-vec3(' + f.map(v => n(v / lum(f))) + '));if(d<bd){bd=d;bt=vec3(' + t.map(n) +
             ');br=lu/' + n(lum(f)) + ';}}').join('') +
           'if(bd<.12)return clamp(bt*clamp(br,.25,1.3),0.,1.);}' +
-          // Насыщенное, чего нет в таблице (маршрут, пробки, линии транспорта), — как у Google в светлой
-          // теме: на экране холст = 0,1 + 0,8 × значение, поэтому значение берем с поправкой на эту формулу.
-          // Сине-фиолетовый маршрут (в светлой теме ≈ 64,12,250) через фильтры страницы становится фиолетовым —
-          // рисуем его ярким синим (на экране ≈ 48,141,227 — ярче и насыщеннее синего фильтры не пропускают).
-          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3){' +
-          'if(u.b>=max(u.r,u.g)&&u.r>u.g)return vec3(.11,.565,.99)*clamp((u.b-.1)/.8,0.,1.);' +
-          'return clamp((u-.1)/.8,0.,1.);}' +
+          // Насыщенное, чего нет в таблице (маршрут, пробки, линии транспорта), — как у Google в светлой теме.
+          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3)return u;' +
           'vec3 d=.1+.8*vec3(' + A.map((row, i) => 'dot(vec3(' + row.map(n) + '),u)+' + n(B[i])).join(',') + ');' +
           'd*=mix(vec3(1),vec3(' + COOL.map(n) + '),1.-smoothstep(.25,.5,dot(d,vec3(.299,.587,.114))));' +
-          'return clamp((d-.1)/.8,0.,1.);}';
+          'return clamp(d,0.,1.);}';
         const withMain = (src, body) => src.replace(/void\s+main\s*\(\s*\)/, 'void gmMain()') +
           '\nuniform float gmFix;' + body;
         // Карта. Цвет на выходе бывает умножен на прозрачность (заливки, пунктир) — тогда делим и умножаем.
