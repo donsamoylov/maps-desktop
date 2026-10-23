@@ -18,6 +18,9 @@ enum DarkTheme {
     (() => {
       if (!window.__gmDark) {
         const css = `
+          /* Кнопка «Приложения Google» (сетка справа сверху) — переходы в другие сервисы Google в окне карт
+             не нужны. В любой теме. */
+          a[href*="/about/products"] { display: none !important; }
           html.gm-dark:not(.gm-split) { filter: invert(0.9) hue-rotate(180deg) !important; background: #fff !important; }
           /* Холст карты — вне фильтра страницы (иначе цвета на нем не ярче 0,9 и не темнее 0,1): фильтр
              получает все, что рядом с цепочкой предков холста (gm-chain), а сама цепочка и холст — нет. */
@@ -654,8 +657,20 @@ enum DarkTheme {
         const isMaps = googlePanel ||
           /(^|\.)google\.[a-z.]+$/.test(location.hostname) && /^\/maps/.test(location.pathname);
         let wanted = false, inStreet = street();
+        // Карта не перерисовывается сама, когда меняется тема: уже нарисованные тайлы остаются в старых
+        // цветах. Крошечная прокрутка (на масштаб не влияет) заставляет Google перерисовать карту.
+        const redraw = () => requestAnimationFrame(() => {
+          const c = mapCanvas || [...document.querySelectorAll('canvas')]
+            .find(c => c.clientWidth * c.clientHeight > innerWidth * innerHeight * 0.3);
+          if (!c) return;
+          const r = c.getBoundingClientRect();
+          c.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: 0.01, deltaMode: 0,
+            clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
+        });
         const apply = () => {
+          const was = dark;
           dark = wanted && isMaps;
+          if (was !== dark && !googlePanel) redraw();
           if (dark && !revealed && !photo() && !googlePanel) {
             document.documentElement.classList.add('gm-wait');
             setTimeout(reveal, 3000);
