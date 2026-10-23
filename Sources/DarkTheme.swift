@@ -532,9 +532,9 @@ enum DarkTheme {
           'gl_FragColor.rgb=gmMap(clamp(c.rgb/c.a,0.,1.),true)*c.a;return;}' +
           'if(gmFix>.5&&gl_FragColor.a>0.){vec4 c=gl_FragColor;vec3 u=c.rgb/c.a;' +
           'float s=max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b));' +
-          // Плашки (время маршрута) — чисто белые: их не трогаем, сетка — серая.
+          // Сетку (белые и серые полупрозрачные линии) почти сливаем с землей.
           'float l=dot(u,vec3(.299,.587,.114));' +
-          'u=mix(u,vec3(' + LAND.map(v => n(v / 255)).join(',') + '),.75*(1.-smoothstep(.06,.14,s))*smoothstep(.2,.45,l)*(1.-smoothstep(.9,.97,l)));' +
+          'u=mix(u,vec3(' + LAND.map(v => n(v / 255)).join(',') + '),.85*(1.-smoothstep(.06,.14,s))*smoothstep(.2,.45,l));' +
           'gl_FragColor.rgb=u*c.a;}}');
         const fixedShaders = new WeakSet(), fixedPrograms = new WeakMap(), mapPrograms = new WeakSet();
         const mapShaders = new WeakSet();
