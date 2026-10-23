@@ -470,7 +470,10 @@ enum DarkTheme {
             ');br=lu/' + n(lum(f)) + ';}}').join('') +
           'if(bd<.12)return clamp(bt*clamp(br,.25,1.3),0.,1.);}' +
           // Насыщенное, чего нет в таблице (маршрут, пробки, линии транспорта), — как у Google в светлой теме.
-          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3)return u;' +
+          // Выбранный маршрут у Google сине-фиолетовый (≈ 64,12,250): на светлой карте он читается синим, на
+          // темной — фиолетовым. Делаем его синим той же яркости, как в Картах на iPhone.
+          'if(near&&max(u.r,max(u.g,u.b))-min(u.r,min(u.g,u.b))>.3){' +
+          'if(u.b>=max(u.r,u.g)&&u.r>u.g)return vec3(.2,.47,1.)*u.b;return u;}' +
           'vec3 d=.1+.8*vec3(' + A.map((row, i) => 'dot(vec3(' + row.map(n) + '),u)+' + n(B[i])).join(',') + ');' +
           'd*=mix(vec3(1),vec3(' + COOL.map(n) + '),1.-smoothstep(.25,.5,dot(d,vec3(.299,.587,.114))));' +
           'return clamp(d,0.,1.);}';
