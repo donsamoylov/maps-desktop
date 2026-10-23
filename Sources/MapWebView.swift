@@ -104,9 +104,10 @@ final class MapWebView: WKWebView {
         lastPinch = event.timestamp
         guard pinchTarget == .map, event.magnification != 0 else { return true }
 
-        // Шаг от скорости растет не больше чем в 2,5 раза.
+        // Шаг от скорости растет не больше чем в 2,5 раза. Сила — скрытая настройка PinchGain.
+        let gain = UserDefaults.standard.object(forKey: "PinchGain") as? Double ?? 1.2
         let speed = abs(event.magnification) / dt
-        let factor = 0.8 * (1 + min(speed * 0.15, 1.5))
+        let factor = gain * (1 + min(speed * 0.15, 1.5))
         let delta = 100 * log(1 + event.magnification) * factor
         scrollWithControl(delta: delta, at: event.locationInWindow)
         return true
