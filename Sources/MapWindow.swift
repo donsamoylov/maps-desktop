@@ -1,8 +1,10 @@
 import AppKit
 import WebKit
 
-final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUIDelegate, NSWindowDelegate, NSMenuItemValidation {
+final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUIDelegate, NSWindowDelegate, NSMenuItemValidation,
+                                 WKScriptMessageHandler {
     let webView: WKWebView
+    private let spinner = NSProgressIndicator()
 
     init() {
         let config = WKWebViewConfiguration()
@@ -11,6 +13,8 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
         config.userContentController.addScriptMessageHandler(LocationBridge(), contentWorld: .page,
                                                              name: LocationBridge.name)
         config.userContentController.addUserScript(LocationBridge.userScript)
+        let ready = WeakMessageHandler()
+        config.userContentController.add(ready, contentWorld: .page, name: "gmReady")
         webView = MapWebView(frame: .zero, configuration: config)
         // Представляемся сайту как Chrome: Safari Google отдает карту, в которой при быстром сдвиге
         // разом моргают все подписи.
@@ -42,7 +46,9 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
         window.isRestorable = false
         window.tabbingMode = .disallowed
         super.init(window: window)
+        ready.target = self
         window.delegate = self
+        setUpSpinner()
         webView.navigationDelegate = self
         webView.uiDelegate = self
         applyTheme()
@@ -91,6 +97,7 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
     // Снимок страницы и ее адрес (в .txt) сохраняются через 8 секунд после загрузки и по уведомлению
     // `io.github.donsamoylov.mapsdesktop.snapshot`.
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if !(webView.url.map(MapsLink.isMaps) ?? false) { hideLoading() }   // вход в аккаунт и т.п.: карты нет
         DispatchQueue.main.asyncAfter(deadline: .now() + 8) { self.saveSnapshot() }
     }
 
@@ -146,7 +153,55 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
     }
 
     func load(_ url: URL) {
+        showLoading()
         webView.load(URLRequest(url: url))
+    }
+
+    // MARK: Крутилка, пока грузится ссылка
+
+    // Страница Карт грузится заново по каждой ссылке, а в темной теме еще и скрыта, пока карта не
+    // нарисуется темной, — несколько секунд окно выглядит замершим. Пока так, по центру крутится индикатор.
+    // Убираем, когда страница сообщила, что карта рисуется (gmReady из DarkTheme), а на других страницах —
+    // когда они загрузились.
+    private var loadingTimeout: DispatchWorkItem?
+
+    private func setUpSpinner() {
+        spinner.style = .spinning
+        spinner.controlSize = .regular
+        spinner.isDisplayedWhenStopped = false
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        webView.addSubview(spinner)
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: webView.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: webView.centerYAnchor),
+        ])
+    }
+
+    private func showLoading() {
+        loadingTimeout?.cancel()
+        spinner.startAnimation(nil)
+        let timeout = DispatchWorkItem { [weak self] in self?.hideLoading() }
+        loadingTimeout = timeout
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: timeout)
+    }
+
+    private func hideLoading() {
+        loadingTimeout?.cancel()
+        loadingTimeout = nil
+        spinner.stopAnimation(nil)
+    }
+
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "gmReady", message.frameInfo.isMainFrame { hideLoading() }
+    }
+
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        showLoading()
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { hideLoading() }
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        hideLoading()
     }
 
     // MARK: Навигация: карты и вход Google — в окне, остальное — в браузер
@@ -264,5 +319,14 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
         case #selector(goForward(_:)): return webView.canGoForward
         default: return true
         }
+    }
+}
+
+/// Обработчик сообщений страницы со слабой ссылкой на окно: WKUserContentController держит обработчик
+/// сильно, и прямая ссылка на контроллер окна не дала бы ему освободиться.
+private final class WeakMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var target: WKScriptMessageHandler?
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        target?.userContentController(controller, didReceive: message)
     }
 }

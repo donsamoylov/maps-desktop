@@ -1,0 +1,11 @@
+{
+  "opening": { "message": "Открываю в Maps Desktop…" },
+  "openHere": { "message": "Открыть карту здесь" },
+  "opened": { "message": "Карта открыта в Maps Desktop" },
+  "askClose": { "message": "Закрывать вкладку в Chrome каждый раз, когда карта открывается в приложении?" },
+  "alwaysClose": { "message": "Закрывать всегда" },
+  "keepTab": { "message": "Оставлять вкладку" },
+  "changeLater": { "message": "Это можно поменять потом в настройках расширения." },
+  "optClose": { "message": "Закрывать вкладку в Chrome, когда карта открылась в Maps Desktop" },
+  "optPause": { "message": "Кнопка расширения на панели Chrome ставит открытие ссылок в приложении на паузу и включает его обратно." }
+}

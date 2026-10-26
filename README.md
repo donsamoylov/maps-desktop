@@ -54,7 +54,7 @@ The app offers to set it up on first launch (if Chrome is installed); later you'
 
 Chrome reads the extension from the app's folder, and Maps Desktop keeps that folder up to date, so the extension updates together with the app (after Chrome restarts). If you skip the offer, it isn't shown again.
 
-Click the extension's toolbar button to pause or resume it. **File ▸ Open in Browser** in the app opens the current map in Chrome, and the extension leaves that tab alone.
+The first time a map opens in the app, the extension asks whether to close the Chrome tab from then on; change the answer in the extension's options. Click the extension's toolbar button to pause or resume it. **File ▸ Open in Browser** in the app opens the current map in Chrome, and the extension leaves that tab alone.
 
 ## FAQ
 

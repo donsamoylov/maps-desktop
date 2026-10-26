@@ -20,6 +20,7 @@ Open in Maps Desktop is the companion extension for Maps Desktop — a free, ope
 ✔ Apple Maps links (maps.apple.com) open as the same place in Google Maps
 ✔ Reload a Google Maps tab to send it to the app too
 ✔ Click Cancel in Chrome’s prompt and the map simply opens in Chrome
+✔ Optionally closes the Chrome tab once the map is open in the app — asked once, change it in the extension options
 ✔ Your default browser stays Chrome — nothing else changes
 ✔ One click on the toolbar button pauses or resumes it
 ✔ Want a map in Chrome after all? Use File ▸ Open in Browser in the app — the extension leaves that tab alone

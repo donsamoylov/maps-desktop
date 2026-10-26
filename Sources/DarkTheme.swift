@@ -152,6 +152,13 @@ enum DarkTheme {
         // Страница скрыта (gm-wait), пока карта не начала рисоваться темными шейдерами (см. useProgram
         // ниже), — иначе при каждой загрузке мелькает светлая карта и заглушки. Не дольше 3 секунд.
         let revealed = false;
+        // Окну: карта начала рисоваться — можно убирать крутилку загрузки.
+        let readySent = false;
+        const ready = () => {
+          if (readySent || window !== window.top) return;
+          readySent = true;
+          window.webkit?.messageHandlers?.gmReady?.postMessage(1);
+        };
         const reveal = () => {
           if (revealed) return;
           revealed = true;
@@ -591,7 +598,10 @@ enum DarkTheme {
             if (st === null) { st = { loc: gl.getUniformLocation(p, 'gmFix'), on: -1 }; fixedPrograms.set(p, st); }
             const on = dark && !photo() ? 1 : 0;
             if (st.loc && st.on !== on) { gl.uniform1f(st.loc, on); st.on = on; }
-            if (on && mapPrograms.has(p)) reveal();          // карта уже рисуется темной
+            if (mapPrograms.has(p)) {
+              if (on) reveal();                              // карта уже рисуется темной
+              ready();
+            }
           };
           proto.useProgram = function (p) {
             const r = use.call(this, p);
