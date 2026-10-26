@@ -57,13 +57,13 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
         }
         DistributedNotificationCenter.default().addObserver(
             self, selector: #selector(saveSnapshot),
-            name: Notification.Name("io.github.donsamoylov.mapsdesktop.snapshot"), object: nil)
+            name: Notification.Name("io.github.donsamoylov.mapsdesktop.dev.snapshot"), object: nil)
         DistributedNotificationCenter.default().addObserver(
             self, selector: #selector(runDebugScript),
-            name: Notification.Name("io.github.donsamoylov.mapsdesktop.eval"), object: nil)
+            name: Notification.Name("io.github.donsamoylov.mapsdesktop.dev.eval"), object: nil)
         DistributedNotificationCenter.default().addObserver(
             self, selector: #selector(testLocation),
-            name: Notification.Name("io.github.donsamoylov.mapsdesktop.geotest"), object: nil)
+            name: Notification.Name("io.github.donsamoylov.mapsdesktop.dev.geotest"), object: nil)
         // KVO срабатывает не всегда, поэтому слушаем и системное уведомление о смене оформления.
         // Вид окна обновляется чуть позже уведомления — проверяем с задержкой.
         DistributedNotificationCenter.default().addObserver(
@@ -95,7 +95,7 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
 
     // Отладка без доступа к экрану: `defaults write local.donsamoylov.GoogleMaps GMSnapshot /путь.png`.
     // Снимок страницы и ее адрес (в .txt) сохраняются через 8 секунд после загрузки и по уведомлению
-    // `io.github.donsamoylov.mapsdesktop.snapshot`.
+    // `io.github.donsamoylov.mapsdesktop.dev.snapshot`.
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         if !(webView.url.map(MapsLink.isMaps) ?? false) { hideLoading() }   // вход в аккаунт и т.п.: карты нет
         DispatchQueue.main.asyncAfter(deadline: .now() + 8) { self.saveSnapshot() }
@@ -103,8 +103,11 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
 
     /// Отладка: выполнить в странице скрипт из `defaults write local.donsamoylov.GoogleMaps GMEval '…'`.
     /// Работает только в режиме отладки (задан GMSnapshot).
+    /// Отладка — только у сборки из папки проекта: установленное приложение на команды не отвечает.
+    private var debugBuild: Bool { Bundle.main.bundlePath.contains("/build/") }
+
     @objc private func runDebugScript() {
-        guard UserDefaults.standard.string(forKey: "GMSnapshot") != nil,
+        guard debugBuild, UserDefaults.standard.string(forKey: "GMSnapshot") != nil,
               let js = UserDefaults.standard.string(forKey: "GMEval") else { return }
         webView.evaluateJavaScript(js)
     }
@@ -131,7 +134,7 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
     }
 
     @objc private func saveSnapshot() {
-        guard let path = UserDefaults.standard.string(forKey: "GMSnapshot") else { return }
+        guard debugBuild, let path = UserDefaults.standard.string(forKey: "GMSnapshot") else { return }
         let url = webView.url?.absoluteString ?? ""
         webView.evaluateJavaScript("JSON.stringify({ textures: window.__gmTextures || null, debug: window.__dbg || null })") { stats, _ in
             try? "\(url)\n\(stats ?? "")".write(toFile: path + ".txt", atomically: true, encoding: .utf8)
