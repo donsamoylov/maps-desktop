@@ -237,6 +237,17 @@ enum DarkTheme {
           }
           const box = e.closest(photoBox + ', .gm-reflip');
           const inPhoto = box && box !== e && box.matches(photoBox) && !box.matches('.gm-reflip');
+          // Белый текст с тенью — надпись поверх фото (число мест на миниатюре и т.п.): в исходных цветах,
+          // как и само фото, а тень, которую перекраска стилей сделала белой, — снова темная.
+          const tc = cs.color.match(/(\d+), (\d+), (\d+)/);
+          if (!inPhoto && tc && +tc[1] + +tc[2] + +tc[3] >= 690 && cs.textShadow !== 'none' &&
+              !e.closest('.gm-unflip') && e.textContent.trim()) {
+            e.classList.add('gm-unflip');
+            patched.set(e, Object.assign(patched.get(e) || {}, { unflip: true }));
+            if (/255, 255, 255/.test(cs.textShadow))
+              patch(e, 'text-shadow', cs.textShadow.replace(/rgba?\(255, 255, 255(, [\d.]+)?\)/g, (m, a) => `rgba(0, 0, 0${a || ', 1'})`));
+            return;
+          }
           // Обычный элемент интерфейса со сплошным фоном внутри фото (подсказка «Определяю
           // местоположение» и т.п.) — переворачиваем еще раз, чтобы он стал темным, как все вокруг.
           if (inPhoto && !e.classList.contains('gm-reflip') && /^rgb\(/.test(cs.backgroundColor) &&
@@ -254,7 +265,8 @@ enum DarkTheme {
           }
           if (!inPhoto && darkGradient(cs.backgroundImage) && !e.closest('.gm-unflip'))
             { e.classList.add('gm-unflip'); patched.set(e, Object.assign(patched.get(e) || {}, { unflip: true })); }
-          if (!inPhoto) for (const prop of ['box-shadow', 'text-shadow']) {
+          // Внутри элементов в исходных цветах тени не перекрашиваем — там они и так темные.
+          if (!inPhoto && !e.closest('.gm-unflip')) for (const prop of ['box-shadow', 'text-shadow']) {
             const v = cs.getPropertyValue(prop);
             if (!v || v === 'none') continue;
             const d = recolor[prop](v);
