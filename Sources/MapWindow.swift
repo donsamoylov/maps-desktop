@@ -8,7 +8,11 @@ final class MapWindowController: NSWindowController, WKNavigationDelegate, WKUID
 
     init() {
         let config = WKWebViewConfiguration()
-        config.websiteDataStore = .default()        // вход в аккаунт и настройки сохраняются
+        // Вход в аккаунт и настройки сохраняются. У пробной сборки из папки проекта — свое хранилище: две
+        // копии с одним хранилищем, запущенные вместе, перезаписывают друг другу cookies и сбрасывают вход.
+        config.websiteDataStore = Bundle.main.bundlePath.contains("/build/")
+            ? WKWebsiteDataStore(forIdentifier: UUID(uuidString: "6D0E6A57-2C1B-4E0E-9A4B-6E61D9A11C0B")!)
+            : .default()
         config.preferences.isElementFullscreenEnabled = true
         config.userContentController.addScriptMessageHandler(LocationBridge(), contentWorld: .page,
                                                              name: LocationBridge.name)

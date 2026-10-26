@@ -17,6 +17,9 @@ enum DarkTheme {
     private static let source = #"""
     (() => {
       if (!window.__gmDark) {
+        // Карта рисуется в этой странице, а не в фоновом потоке: иначе (после Street View Google переносит
+        // ее в OffscreenCanvas) шейдеры темной схемы, которые подменяются здесь, до нее не доходят.
+        try { delete HTMLCanvasElement.prototype.transferControlToOffscreen; } catch (e) {}
         const css = `
           /* Кнопка «Приложения Google» (сетка справа сверху) — переходы в другие сервисы Google в окне карт
              не нужны. В любой теме. */
@@ -83,7 +86,9 @@ enum DarkTheme {
           const url = /!3m\d+!1e3/.test(location.href);
           if (urlPhotoWas && !url) imageryAt = -Infinity;
           urlPhotoWas = url;
-          return url || inStreet || performance.now() - imageryAt < 3000;
+          // Street View — сразу по адресу, не дожидаясь конца перехода (inStreet): иначе панорама,
+          // загруженная прямо по ссылке, успевает нарисоваться через шейдеры темной схемы.
+          return url || street() || inStreet || performance.now() - imageryAt < 3000;
         };
 
         // Темные тени и затемняющие подложки Google (под меню, под фото) после инверсии светятся белым.
@@ -358,8 +363,15 @@ enum DarkTheme {
           if (wrapper(e)) { e.classList.add('gm-wrap'); for (const c of e.children) target(c); }
           else e.classList.add('gm-flt');
         };
+        // Google перестраивает панели (выход из Street View и т.п.): обертка, которая была прозрачной, могла
+        // получить свой фон — тогда фильтр ставим на нее саму, а метки внутри снимаем.
         const refilter = () => {
           if (!mapCanvas) return;
+          for (const w of document.querySelectorAll('.gm-wrap')) {
+            if (wrapper(w) || w.querySelector('.gm-chain')) continue;
+            w.querySelectorAll('.gm-flt, .gm-wrap').forEach(e => e.classList.remove('gm-flt', 'gm-wrap'));
+            w.classList.replace('gm-wrap', 'gm-flt');
+          }
           for (const chain of document.querySelectorAll('.gm-chain'))
             for (const c of chain.children) target(c);
           for (const w of document.querySelectorAll('.gm-wrap'))
@@ -398,8 +410,16 @@ enum DarkTheme {
           patched.clear();
         };
 
-        const watchPhoto = () => document.documentElement.classList.toggle('gm-photo', photo());
-        setInterval(() => { watchPhoto(); scan(); markChain(); }, 400);
+        // Спутник или Street View включились или выключились — карту, уже нарисованную в старом режиме
+        // шейдеров, просим перерисовать (redraw ниже).
+        let wasPhoto = null;
+        const watchPhoto = () => {
+          const now = photo();
+          document.documentElement.classList.toggle('gm-photo', now);
+          if (wasPhoto !== null && now !== wasPhoto && dark) redraw();
+          wasPhoto = now;
+        };
+        setInterval(() => { watchPhoto(); scan(); markChain(); refilter(); }, 400);
         setInterval(sweep, 1500);
         // Меню и карточки открываются по клику — проверяем сразу, чтобы светлое затемнение не мелькало.
         document.addEventListener('click', () => { setTimeout(sweep, 30); setTimeout(sweep, 250); }, true);
@@ -660,11 +680,13 @@ enum DarkTheme {
           const tex = proto.texImage2D, sub = proto.texSubImage2D;
           // texImage2D(target, level, internalformat, format, type, source) или (…, width, height, border, format, type, pixels)
           proto.texImage2D = function (...a) {
-            // Текстура из картинки — «сырая» (тайл схемы); пустая или из буфера — кадр или данные.
+            // Текстура из картинки-тайла схемы (/maps/vt) — «сырая», ее переводим как карту. Остальные картинки
+            // (панорамы Street View, фото, спутник) и кадры из буфера не трогаем.
             const t = this.__gmBound?.[this.__gmUnit || 0];
             if (t && a[0] === this.TEXTURE_2D && a[1] === 0) {
               const src = a.length === 6 ? a[5] : null;
-              if (src instanceof HTMLImageElement || src instanceof ImageBitmap) rawTextures.add(t); else rawTextures.delete(t);
+              if (src instanceof HTMLImageElement && /\/maps\/vt/.test(src.currentSrc || src.src)) rawTextures.add(t);
+              else rawTextures.delete(t);
             }
             return tex.apply(this, a.length === 6 ? touchUp(a, 5) : a);
           };
@@ -708,13 +730,15 @@ enum DarkTheme {
           document.documentElement.classList.toggle('gm-frame', dark && googlePanel);
           document.documentElement.classList.toggle('gm-photo', photo());
           // Вышли из Street View — темные панели просмотрщика больше не исключение.
+          // Снимаем со всех: плашки поверх фото, нужные и вне Street View, перекраска найдет заново, а
+          // оставленные навсегда (мини-карта Street View, кнопки) оставались светлыми.
           if (!inStreet) {
             streetFlipped.forEach((bg, e) => {
-              if (bg !== null && e.isConnected) return;     // плашка поверх фото — она нужна и вне Street View
               streetFlipped.delete(e);
               e.classList.remove('gm-unflip');
               if (bg !== null) bg ? e.style.setProperty('background-color', bg) : e.style.removeProperty('background-color');
             });
+            setTimeout(sweep, 50);
           }
           scan();
           paint();

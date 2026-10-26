@@ -184,13 +184,16 @@ final class MapWebView: WKWebView {
         let p = convert(windowPoint, from: nil)
         let x = p.x / pageZoom
         let y = (isFlipped ? p.y : bounds.height - p.y) / pageZoom
+        // В Street View с картой внизу карта не canvas, а мозаика картинок-тайлов (/maps/vt) — ее тоже узнаем.
         let js = """
             (() => {
               const el = document.elementFromPoint(\(x), \(y));
               if (!el) return false;
               const big = [...document.querySelectorAll('canvas')]
                 .filter(c => c.clientWidth * c.clientHeight > innerWidth * innerHeight * 0.3);
-              return big.some(c => c === el || c.parentElement.contains(el));
+              if (big.some(c => c === el || c.parentElement.contains(el))) return true;
+              return document.elementsFromPoint(\(x), \(y)).slice(0, 6)
+                .some(e => e.tagName === 'IMG' && /\\/maps\\/vt/.test(e.currentSrc || e.src));
             })()
             """
         evaluateJavaScript(js) { result, _ in completion(result as? Bool ?? false) }
