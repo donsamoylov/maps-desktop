@@ -502,14 +502,18 @@ enum DarkTheme {
         const withMain = (src, body) => src.replace(/void\s+main\s*\(\s*\)/, 'void gmMain()') +
           '\nuniform float gmFix;' + body;
         // Карта. Цвет на выходе бывает умножен на прозрачность (заливки, пунктир) — тогда делим и умножаем.
-        // Подписи: у текста карты есть обводка, у текста на табличках дорог — нет; его оставляем темным.
+        // Подписи: у текста карты есть обводка, у текста на табличках дорог — нет.
         const mapShader = src => {
           const text = src.match(/(\w+)\*=(\w+)\.a;\w+\*=\w+\.a;vec4 \w+=mix\(vec4\(\2\.rgb\*\1,\1\)/);
           const near = text ? 'false' : 'true';                    // подписи — только точно или как при инверсии
+          // Текст без обводки — надписи на табличках дорог. Таблички в темной схеме светлые (как на iPhone),
+          // поэтому светлый текст на них делаем темным; темный оставляем.
+          const plate = text ? 'else if(gmFix>.5&&gl_FragColor.a>0.){vec3 v=gl_FragColor.rgb;' +
+            'if(dot(v,vec3(.299,.587,.114))>.6)gl_FragColor.rgb=vec3(.09,.11,.16);}' : '';
           return withMain(src, mapGLSL + 'void main(){gmMain();if(gmFix>.5&&gl_FragColor.a>0.' + (text ? '&&' + text[2] + '.a>.01' : '') +
             '){vec4 c=gl_FragColor;' +
-            (/\.rgb\*=\w+|\w+\*\w+\.a\*/.test(src) ? 'gl_FragColor.rgb=gmMap(clamp(c.rgb/c.a,0.,1.),' + near + ')*c.a;}}'
-              : 'gl_FragColor.rgb=gmMap(c.rgb,' + near + ');}}'));
+            (/\.rgb\*=\w+|\w+\*\w+\.a\*/.test(src) ? 'gl_FragColor.rgb=gmMap(clamp(c.rgb/c.a,0.,1.),' + near + ')*c.a;}'
+              : 'gl_FragColor.rgb=gmMap(c.rgb,' + near + ');}') + plate + '}');
         };
         // Космос вокруг глобуса: у Google светло-голубой градиент (темнее у самого глобуса). В темной схеме —
         // почти черный, у края глобуса темно-синее свечение.
