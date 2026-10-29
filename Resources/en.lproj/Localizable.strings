@@ -53,11 +53,12 @@
 "Couldn’t unpack the update." = "Couldn’t unpack the update.";
 "Install Chrome Extension…" = "Install Chrome Extension…";
 "Open Google Maps links from Chrome in Maps Desktop?" = "Open Google Maps links from Chrome in Maps Desktop?";
-"A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. Installing takes three clicks." = "A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. Installing takes three clicks.";
 "Install…" = "Install…";
 "Not Now" = "Not Now";
 "Google Chrome isn’t installed" = "Google Chrome isn’t installed";
 "The extension works in Google Chrome. Install Chrome and choose this menu item again." = "The extension works in Google Chrome. Install Chrome and choose this menu item again.";
-"Add the extension in Chrome" = "Add the extension in Chrome";
-"1. In Chrome, turn on Developer mode (top right of the Extensions page).\n2. Click Load unpacked and choose the “Chrome Extension” folder shown in Finder.\n3. The first time you open a map link, tick Always allow and click Open." = "1. In Chrome, turn on Developer mode (top right of the Extensions page).\n2. Click Load unpacked and choose the “Chrome Extension” folder shown in Finder.\n3. The first time you open a map link, tick Always allow and click Open.";
-"Open Chrome and the Folder" = "Open Chrome and the Folder";
+"A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. It installs from the Chrome Web Store." = "A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. It installs from the Chrome Web Store.";
+"Help" = "Help";
+"Maps Desktop on GitHub" = "Maps Desktop on GitHub";
+"Report a Problem…" = "Report a Problem…";
+"Chrome Extension in Chrome Web Store" = "Chrome Extension in Chrome Web Store";

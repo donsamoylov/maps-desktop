@@ -1,11 +1,32 @@
 {
-  "opening": { "message": "Opening in Maps Desktop…" },
-  "openHere": { "message": "Open the map here instead" },
-  "opened": { "message": "The map is open in Maps Desktop" },
-  "askClose": { "message": "Close the Chrome tab every time a map opens in the app?" },
-  "alwaysClose": { "message": "Always close" },
-  "keepTab": { "message": "Keep the tab" },
-  "changeLater": { "message": "You can change this later in the extension options." },
-  "optClose": { "message": "Close the Chrome tab when a map opens in Maps Desktop" },
-  "optPause": { "message": "Click the extension button in the toolbar to pause or resume opening links in the app." }
+  "opening": {
+    "message": "Opening in Maps Desktop…"
+  },
+  "openHere": {
+    "message": "Open the map here instead"
+  },
+  "opened": {
+    "message": "The map is open in Maps Desktop"
+  },
+  "askClose": {
+    "message": "Close the Chrome tab every time a map opens in the app?"
+  },
+  "alwaysClose": {
+    "message": "Always close"
+  },
+  "keepTab": {
+    "message": "Keep the tab"
+  },
+  "changeLater": {
+    "message": "You can change this later in the extension options."
+  },
+  "optClose": {
+    "message": "Close the Chrome tab when a map opens in Maps Desktop"
+  },
+  "optPause": {
+    "message": "Click the extension button in the toolbar to pause or resume opening links in the app."
+  },
+  "optSource": {
+    "message": "Maps Desktop and this extension on GitHub"
+  }
 }

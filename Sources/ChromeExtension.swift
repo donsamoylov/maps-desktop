@@ -1,15 +1,15 @@
 import AppKit
 
-/// Расширение для Chrome, которое передает ссылки на Google Карты в приложение.
-/// Файлы расширения лежат внутри приложения; для Chrome они копируются в папку в Application Support,
-/// откуда пользователь один раз загружает их кнопкой «Load unpacked» — без магазина Chrome иначе
-/// не позволяет. Chrome читает расширение прямо из этой папки, поэтому приложение при каждом запуске
-/// обновляет ее до своей версии.
+/// Расширение для Chrome, которое передает ссылки на Google Карты в приложение. Ставится из Chrome Web Store.
 ///
-/// При первом запуске (если есть Chrome) приложение предлагает установку. Согласие — папка дальше
-/// обновляется всегда; отказ — больше не спрашиваем, установка остается в меню.
+/// При первом запуске (если есть Chrome) приложение предлагает установку и открывает страницу расширения
+/// в магазине; отказ — больше не спрашиваем, установка остается в меню.
+///
+/// Раньше расширение ставилось вручную («Load unpacked») из папки в Application Support. У тех, кто так
+/// его поставил (состояние "installed"), приложение и дальше обновляет эту папку при каждом запуске.
 enum ChromeExtension {
-    private static let stateKey = "chromeExtension"          // "installed" | "declined"
+    static let storeURL = URL(string: "https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa")!
+    private static let stateKey = "chromeExtension"          // "store" | "installed" (папка) | "declined"
     private static let chromeID = "com.google.Chrome"
 
     private static var bundled: URL? { Bundle.main.resourceURL?.appendingPathComponent("ChromeExtension") }
@@ -37,7 +37,7 @@ enum ChromeExtension {
     private static func offer() {
         let alert = NSAlert()
         alert.messageText = L("Open Google Maps links from Chrome in Maps Desktop?")
-        alert.informativeText = L("A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. Installing takes three clicks.")
+        alert.informativeText = L("A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. It installs from the Chrome Web Store.")
         alert.addButton(withTitle: L("Install…"))
         alert.addButton(withTitle: L("Not Now"))
         if alert.runModal() == .alertFirstButtonReturn {
@@ -47,7 +47,7 @@ enum ChromeExtension {
         }
     }
 
-    /// Пошаговая установка: папка готова и показана в Finder, страница расширений открыта в Chrome.
+    /// Страница расширения в Chrome Web Store — открываем в Chrome, расширение работает только там.
     static func install() {
         guard let chrome else {
             let alert = NSAlert()
@@ -56,22 +56,10 @@ enum ChromeExtension {
             alert.runModal()
             return
         }
-        guard sync(force: true) else { return }
-        UserDefaults.standard.set("installed", forKey: stateKey)
-
-        let alert = NSAlert()
-        alert.messageText = L("Add the extension in Chrome")
-        alert.informativeText = L("""
-            1. In Chrome, turn on Developer mode (top right of the Extensions page).
-            2. Click Load unpacked and choose the “Chrome Extension” folder shown in Finder.
-            3. The first time you open a map link, tick Always allow and click Open.
-            """)
-        alert.addButton(withTitle: L("Open Chrome and the Folder"))
-        alert.addButton(withTitle: L("Cancel"))
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        NSWorkspace.shared.activateFileViewerSelecting([folder])
-        NSWorkspace.shared.open([URL(string: "chrome://extensions")!], withApplicationAt: chrome,
-                                configuration: NSWorkspace.OpenConfiguration())
+        if UserDefaults.standard.string(forKey: stateKey) != "installed" {
+            UserDefaults.standard.set("store", forKey: stateKey)
+        }
+        NSWorkspace.shared.open([storeURL], withApplicationAt: chrome, configuration: NSWorkspace.OpenConfiguration())
     }
 
     /// Копирует расширение из приложения в папку для Chrome, если файлы там отличаются.

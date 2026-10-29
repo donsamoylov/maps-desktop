@@ -117,6 +117,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         window.addItem(withTitle: L("Minimize"), action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         window.addItem(withTitle: L("Zoom"), action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
         NSApp.windowsMenu = window
+
+        let help = submenu(main, L("Help"))
+        help.addItem(withTitle: L("Maps Desktop on GitHub"), action: #selector(openGitHub(_:)), keyEquivalent: "").target = self
+        help.addItem(withTitle: L("Report a Problem…"), action: #selector(reportProblem(_:)), keyEquivalent: "").target = self
+        help.addItem(.separator())
+        help.addItem(withTitle: L("Chrome Extension in Chrome Web Store"), action: #selector(openExtensionPage(_:)),
+                     keyEquivalent: "").target = self
+        NSApp.helpMenu = help
         return main
     }
 
@@ -148,6 +156,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     /// Ссылки на карты из Chrome передает приложению расширение «Open in Maps Desktop».
     @objc private func installExtension(_ sender: Any?) { ChromeExtension.install() }
+
+    private static let repo = URL(string: "https://github.com/donsamoylov/maps-desktop")!
+    @objc private func openGitHub(_ sender: Any?) { LinkRouter.openInBrowser(Self.repo) }
+    @objc private func reportProblem(_ sender: Any?) {
+        LinkRouter.openInBrowser(Self.repo.appendingPathComponent("issues/new"))
+    }
+    @objc private func openExtensionPage(_ sender: Any?) { LinkRouter.openInBrowser(ChromeExtension.storeURL) }
 
     @objc private func newWindow(_ sender: Any?) { show(nil) }
 }

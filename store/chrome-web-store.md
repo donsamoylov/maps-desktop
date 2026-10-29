@@ -29,6 +29,9 @@ Open in Maps Desktop is the companion extension for Maps Desktop — a free, ope
 Requires the free Maps Desktop app for Mac (macOS 14 or later):
 https://github.com/donsamoylov/maps-desktop/releases/latest
 
+Source code of the app and this extension, questions and bug reports:
+https://github.com/donsamoylov/maps-desktop
+
 The first time, Chrome asks “Open Maps Desktop?” — tick “Always allow” and click Open.
 
 Maps Desktop is an independent project and is not affiliated with, endorsed by or sponsored by Google LLC. Google Maps is a trademark of Google LLC.
@@ -67,6 +70,7 @@ Opens Google Maps links in the Maps Desktop app for Mac instead of a browser tab
 
 Visibility: Public. Regions: All regions. Pricing: Free.
 
-## After approval
+## Store page
 
-Put the store link into `Info.plist` → `NMExtensionURL`, so the app's menu item **Install Chrome Extension…** opens the store page, and into the README.
+https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa — linked from the app
+(`ChromeExtension.storeURL`, menu Help) and the README.
