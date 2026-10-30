@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/donsamoylov/maps-desktop/releases/latest/download/MapsDesktop.zip"><img src="https://img.shields.io/github/v/release/donsamoylov/maps-desktop?label=Download%20for%20Mac&style=for-the-badge&color=5b8cff" height="40" alt="Download Maps Desktop for Mac"></a>
+  <a href="https://github.com/donsamoylov/maps-desktop/releases/latest/download/MapsDesktop.zip"><img src="https://img.shields.io/github/v/release/donsamoylov/maps-desktop?label=Download%20for%20Mac&style=for-the-badge&labelColor=2f6fe4&color=5b8cff" alt="Download Maps Desktop for Mac"></a>
 </p>
 
 <p align="center">
