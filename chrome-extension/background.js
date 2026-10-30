@@ -16,7 +16,17 @@ const isMapsLink = (raw) => {
 
 const isEnabled = async () => (await chrome.storage.local.get({ enabled: true })).enabled;
 
+// Приложение есть только для Mac: на других системах расширение ничего не перехватывает, а кнопка
+// открывает страницу, где это сказано.
+const onMac = chrome.runtime.getPlatformInfo().then((p) => p.os === 'mac');
+const active = async () => (await onMac) && (await isEnabled());
+
 const showState = async () => {
+  if (!(await onMac)) {
+    chrome.action.setBadgeText({ text: '' });
+    chrome.action.setTitle({ title: chrome.i18n.getMessage('actionNotMac') });
+    return;
+  }
   const on = await isEnabled();
   chrome.action.setBadgeText({ text: on ? '' : 'off' });
   chrome.action.setBadgeBackgroundColor({ color: '#5f6368' });
@@ -24,6 +34,7 @@ const showState = async () => {
 };
 
 chrome.action.onClicked.addListener(async () => {
+  if (!(await onMac)) return chrome.tabs.create({ url: 'welcome.html' });
   await chrome.storage.local.set({ enabled: !(await isEnabled()) });
   showState();
 });
@@ -77,7 +88,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (d) => {
   seen.set(d.tabId, Date.now());
   // Что было во вкладке до перехода — читаем первым делом, пока об этом переходе ничего не записано.
   const prev = urls.has(d.tabId) ? urls.get(d.tabId) : await committedUrl(d.tabId);
-  if (!(await isEnabled())) return;
+  if (!(await active())) return;
   if (new URL(d.url).searchParams.has('mdkeep')) return;   // «Открыть в браузере» из самого приложения
   // Возврат со страницы-переходника — не перехватываем снова.
   if (prev?.startsWith(handoffPage)) return;
@@ -96,7 +107,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, info) => {
   const prev = await committedUrl(tabId);
   if (prev && (isMapsLink(prev) || prev.startsWith(handoffPage))) return;
   setTimeout(async () => {
-    if (Date.now() - (seen.get(tabId) ?? 0) < 3000 || !(await isEnabled())) return;
+    if (Date.now() - (seen.get(tabId) ?? 0) < 3000 || !(await active())) return;
     seen.set(tabId, Date.now());
     handoff(tabId, info.url, 2);
   }, 500);

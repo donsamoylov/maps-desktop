@@ -57,7 +57,7 @@
     "message": "Установите Maps Desktop"
   },
   "welStep1Text": {
-    "message": "Бесплатное приложение Google Карт для Mac с открытым кодом. Уже есть? Переходите к шагу 2."
+    "message": "Бесплатное приложение Google Карт для Mac с открытым кодом (macOS 14 и новее). Уже есть? Переходите к шагу 2."
   },
   "welStep2": {
     "message": "Подключите Chrome к приложению"
@@ -103,5 +103,11 @@
   },
   "optDownload": {
     "message": "Скачать Maps Desktop для Mac"
+  },
+  "notMac": {
+    "message": "Maps Desktop — приложение для Mac, и это расширение работает только в Chrome на Mac. На этом компьютере оно ничего не делает и оставляет ссылки на Google Карты в Chrome, так что его можно удалить."
+  },
+  "actionNotMac": {
+    "message": "Open in Maps Desktop работает только на Mac"
   }
 }

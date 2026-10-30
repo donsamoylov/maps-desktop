@@ -4,6 +4,13 @@
 localize();
 document.title = chrome.i18n.getMessage('welTitle');
 
+// Не Mac — приложения для этой системы нет: шаги прячем, объясняем, что расширение тут бездействует.
+chrome.runtime.getPlatformInfo().then(({ os }) => {
+  if (os === 'mac') return;
+  document.getElementById('notMac').hidden = false;
+  for (const el of document.querySelectorAll('.lead, .step')) el.hidden = true;
+});
+
 const status = document.getElementById('status');
 const say = (msg, cls = '') => {
   status.hidden = false;

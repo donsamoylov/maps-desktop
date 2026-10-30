@@ -57,7 +57,7 @@
     "message": "Install Maps Desktop"
   },
   "welStep1Text": {
-    "message": "The free, open-source Google Maps app for Mac. Already have it? Go to step 2."
+    "message": "The free, open-source Google Maps app for Mac (macOS 14 or later). Already have it? Go to step 2."
   },
   "welStep2": {
     "message": "Connect Chrome to the app"
@@ -103,5 +103,11 @@
   },
   "optDownload": {
     "message": "Download Maps Desktop for Mac"
+  },
+  "notMac": {
+    "message": "Maps Desktop is a Mac app, and this extension works only in Chrome on a Mac. On this computer it does nothing and leaves Google Maps links in Chrome, so you can remove it."
+  },
+  "actionNotMac": {
+    "message": "Open in Maps Desktop works only on a Mac"
   }
 }

@@ -26,6 +26,8 @@
   @media (prefers-color-scheme: dark) { #status.ok { color: #81c995; } #status.bad { color: #f28b82; } }
   ul { margin: 0; padding-left: 18px; }
   li { margin-bottom: 8px; }
+  .notice { margin: 20px 0 0; padding: 14px 16px; border-radius: 10px; text-align: left;
+            background: color-mix(in srgb, #f9ab00 16%, transparent); }
   footer { border-top: 1px solid var(--line); padding-top: 18px; text-align: center; font-size: 13px; }
 </style>
 </head>
@@ -35,9 +37,10 @@
     <img src="icons/128.png" width="80" height="80" alt="">
     <h1 data-msg="welTitle"></h1>
     <p class="lead" data-msg="welLead"></p>
+    <p id="notMac" class="notice" hidden data-msg="notMac"></p>
   </header>
 
-  <section>
+  <section class="step">
     <span class="n">1</span>
     <h2 data-msg="welStep1"></h2>
     <p data-msg="welStep1Text"></p>
@@ -46,7 +49,7 @@
       <a data-href="installHelp" target="_blank" data-msg="more"></a></p>
   </section>
 
-  <section>
+  <section class="step">
     <span class="n">2</span>
     <h2 data-msg="welStep2"></h2>
     <p data-msg="welStep2Text"></p>
@@ -54,7 +57,7 @@
     <p id="status" hidden></p>
   </section>
 
-  <section>
+  <section class="step">
     <span class="n">3</span>
     <h2 data-msg="welStep3"></h2>
     <ul>

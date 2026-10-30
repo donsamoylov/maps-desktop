@@ -8,11 +8,13 @@ Upload package: `build/maps-desktop-chrome-extension.zip` (made by `tools/pack_e
 **Name** (from the manifest): Open in Maps Desktop
 
 **Summary** (≤132 chars, from the manifest):
-Open Google Maps links in the Maps Desktop app for Mac instead of a browser tab. One click to pause.
+Mac only. Open Google Maps links in the free Maps Desktop app instead of a browser tab. One click to pause.
 
 **Description:**
 
 Open Google Maps links in a real Mac app instead of yet another browser tab.
+
+For Mac only: Maps Desktop is a macOS app, so on Windows, Linux and ChromeOS this extension does nothing.
 
 Open in Maps Desktop is the companion extension for Maps Desktop — a free, open-source Google Maps app for macOS with a dark mode, natural trackpad gestures and its own window in the Dock. When you click a Google Maps link in Chrome — in Gmail, Slack, Telegram Web, a search result or a shared place — the extension hands it to Maps Desktop and the place, search or route opens there.
 

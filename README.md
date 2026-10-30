@@ -10,7 +10,10 @@
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><img src="https://img.shields.io/github/v/release/donsamoylov/maps-desktop?label=download&color=5b8cff" alt="Download Maps Desktop for Mac"></a>
+  <a href="https://github.com/donsamoylov/maps-desktop/releases/latest/download/MapsDesktop.zip"><img src="https://img.shields.io/github/v/release/donsamoylov/maps-desktop?label=Download%20for%20Mac&style=for-the-badge&color=5b8cff" height="40" alt="Download Maps Desktop for Mac"></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/macOS-14%2B-141b2e" alt="macOS 14 Sonoma or later">
   <img src="https://img.shields.io/badge/Apple%20Silicon%20%26%20Intel-universal-141b2e" alt="Universal app for Apple Silicon and Intel Macs">
 </p>
@@ -33,19 +36,20 @@ Google has no official Google Maps app for Mac, and the website in a browser tab
 
 ## Download and install
 
-1. Download **MapsDesktop.zip** from the [latest release](../../releases/latest) and unzip it.
-2. Move **Maps Desktop.app** to your **Applications** folder.
-3. Open it. The first time, macOS warns that the developer can't be verified (Maps Desktop isn't notarized by Apple): open **System Settings ▸ Privacy & Security** and click **Open Anyway**. Or run once:
+1. **[Download MapsDesktop.zip](https://github.com/donsamoylov/maps-desktop/releases/latest/download/MapsDesktop.zip)** — always the latest version, about 1 MB. Open it and macOS unzips **Maps Desktop.app** next to it.
+2. Drag **Maps Desktop.app** into **Applications**.
+3. Open it. The first time, macOS says it can't verify the developer, because Maps Desktop isn't notarized by Apple. Click **Done**, open **System Settings ▸ Privacy & Security**, scroll down and click **Open Anyway**. Or run once:
    ```bash
    xattr -dr com.apple.quarantine "/Applications/Maps Desktop.app"
    ```
 4. Sign in to your Google account inside Maps Desktop to see saved places and history.
+5. Using Chrome? Accept the offer to add the **Open in Maps Desktop** extension, and Google Maps links you click in Chrome will open in the app ([details below](#open-google-maps-links-from-chrome)).
 
-Updates install themselves from then on: **Maps Desktop ▸ Check for Updates…**
+Updates install themselves from then on; to check right away, choose **Maps Desktop ▸ Check for Updates…**. Older versions are on the [Releases](../../releases) page.
 
 ### Open Google Maps links from Chrome
 
-The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same.
+The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same. Like the app, it's for Mac only: on Windows, Linux or ChromeOS it does nothing.
 
 **[Install Open in Maps Desktop from the Chrome Web Store](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa)**
 
@@ -94,6 +98,10 @@ Releases are built by GitHub Actions when a `v*` tag is pushed — see [`.github
 ## По-русски
 
 **Maps Desktop — Google Карты для Mac с темной темой.** Полноценные Google Карты в отдельном окне macOS: темная тема в холодных тонах, которая переключается вместе с системой; свайп двумя пальцами двигает карту, щипок масштабирует; ссылки на Google Карты из Chrome (через расширение), Telegram, почты и других приложений открываются прямо в приложении; работает «Где я»; обновления приходят сами. Приложение при первом запуске предлагает поставить расширение для Chrome, а расширение сразу после установки помогает скачать приложение и подключить его одной кнопкой. Язык интерфейса — как в системе.
+
+Приложение и расширение — только для Mac.
+
+**Установка:** [скачайте Maps Desktop для Mac](https://github.com/donsamoylov/maps-desktop/releases/latest/download/MapsDesktop.zip), откройте архив и перенесите **Maps Desktop.app** в **Программы**. В первый раз macOS не даст открыть приложение от непроверенного разработчика: нажмите **Готово**, затем **Системные настройки ▸ Конфиденциальность и безопасность ▸ Все равно открыть**.
 
 ---
 
