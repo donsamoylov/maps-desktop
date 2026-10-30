@@ -21,7 +21,7 @@ Google has no official Google Maps app for Mac, and the website in a browser tab
 
 ## Features
 
-- 🌙 **Dark mode for Google Maps** — a dark theme for the whole interface and the map, with cool night-blue map colours. Photos, satellite view and Street View keep their real colours. Follows the macOS appearance automatically, or pick Light / Dark in **View ▸ Theme**.
+- 🌙 **Dark mode for Google Maps** — a dark theme for the whole interface and the map, with cool night-blue map colours. Photos, satellite view and Street View keep their real colours. Follows the macOS appearance automatically, or pick Light / Dark in the **Appearance** menu.
 - 🖐 **Trackpad gestures that make sense** — two-finger swipe pans the map like on a phone, pinch zooms, lists and panels scroll normally. In a browser, two-finger scroll only zooms Google Maps.
 - 🔗 **Open Google Maps links in the app** — `google.com/maps`, `maps.google.com`, `maps.app.goo.gl` short links and even Apple Maps links clicked in Chrome open in Maps Desktop, as do `comgooglemaps://` and `geo:` links from any app. Links to other sites from inside the map open in your usual browser.
 - 🧩 **Chrome extension** — that's what sends Chrome's map links to the app; your default browser stays the same.
@@ -47,7 +47,13 @@ Updates install themselves from then on: **Maps Desktop ▸ Check for Updates…
 
 The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same.
 
-**[Install Open in Maps Desktop from the Chrome Web Store](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa)** — the app also offers it on first launch (if Chrome is installed), and later it's in **Maps Desktop ▸ Install Chrome Extension…**. The first time Chrome asks “Open Maps Desktop?”, tick **Always allow** and click **Open**.
+**[Install Open in Maps Desktop from the Chrome Web Store](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa)**
+
+How the app and the extension find each other:
+
+1. **From the app.** On first launch (if Chrome is installed) Maps Desktop offers the extension; later it's in **Maps Desktop ▸ Install Chrome Extension…** and **Help ▸ Chrome Extension in Chrome Web Store**. **Install…** opens the extension in the Chrome Web Store — click **Add to Chrome**.
+2. **From the extension.** Right after it's added, the extension opens a welcome page with a **Download Maps Desktop** button for those who don't have the app yet, and **Connect**. Connect opens the app: Chrome asks “Open Maps Desktop?” — tick **Always allow** and click **Open** — and Maps Desktop confirms that Chrome is connected.
+3. **Then** just click Google Maps links in Chrome. If the app isn't on this Mac, the extension doesn't fail silently: it offers to download Maps Desktop or to open the map in Chrome.
 
 The extension's source is in [`chrome-extension/`](chrome-extension).
 
@@ -87,7 +93,7 @@ Releases are built by GitHub Actions when a `v*` tag is pushed — see [`.github
 
 ## По-русски
 
-**Maps Desktop — Google Карты для Mac с темной темой.** Полноценные Google Карты в отдельном окне macOS: темная тема в холодных тонах, которая переключается вместе с системой; свайп двумя пальцами двигает карту, щипок масштабирует; ссылки на Google Карты из Chrome (через расширение), Telegram, почты и других приложений открываются прямо в приложении; работает «Где я»; обновления приходят сами. Язык интерфейса — как в системе.
+**Maps Desktop — Google Карты для Mac с темной темой.** Полноценные Google Карты в отдельном окне macOS: темная тема в холодных тонах, которая переключается вместе с системой; свайп двумя пальцами двигает карту, щипок масштабирует; ссылки на Google Карты из Chrome (через расширение), Telegram, почты и других приложений открываются прямо в приложении; работает «Где я»; обновления приходят сами. Приложение при первом запуске предлагает поставить расширение для Chrome, а расширение сразу после установки помогает скачать приложение и подключить его одной кнопкой. Язык интерфейса — как в системе.
 
 ---
 

@@ -24,6 +24,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// Сюда приходят перехваченные ссылки: карты открываем, остальное отдаем браузеру.
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
+            // mapsdesktop:// присылает только расширение для Chrome — значит, оно стоит.
+            if url.scheme?.lowercased() == "mapsdesktop" {
+                ChromeExtension.connected()
+                if url.host?.lowercased() == "connect" {
+                    show(nil)
+                    ChromeExtension.confirmConnection(in: controller?.window)
+                    continue
+                }
+            }
             if let web = MapsLink.webURL(for: url) {
                 show(web)
             } else if ["http", "https"].contains(url.scheme?.lowercased() ?? "") {

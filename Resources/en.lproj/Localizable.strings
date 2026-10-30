@@ -57,8 +57,13 @@
 "Not Now" = "Not Now";
 "Google Chrome isn’t installed" = "Google Chrome isn’t installed";
 "The extension works in Google Chrome. Install Chrome and choose this menu item again." = "The extension works in Google Chrome. Install Chrome and choose this menu item again.";
-"A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. It installs from the Chrome Web Store." = "A small Chrome extension sends map links you click in Chrome to this app. Chrome stays your default browser. It installs from the Chrome Web Store.";
 "Help" = "Help";
 "Maps Desktop on GitHub" = "Maps Desktop on GitHub";
 "Report a Problem…" = "Report a Problem…";
 "Chrome Extension in Chrome Web Store" = "Chrome Extension in Chrome Web Store";
+"Chrome opens map links in a tab. The free “Open in Maps Desktop” extension sends them here instead, and Chrome stays your browser.\n\nClick Install, then “Add to Chrome” on the extension page and Connect on the page that opens next. Chrome asks to open Maps Desktop — tick “Always allow”.\n\nYou can do it later: Maps Desktop ▸ Install Chrome Extension…" = "Chrome opens map links in a tab. The free “Open in Maps Desktop” extension sends them here instead, and Chrome stays your browser.\n\nClick Install, then “Add to Chrome” on the extension page and Connect on the page that opens next. Chrome asks to open Maps Desktop — tick “Always allow”.\n\nYou can do it later: Maps Desktop ▸ Install Chrome Extension…";
+"Google Maps links you click in Chrome open here. To pause, click the extension’s button in Chrome’s toolbar. To see a map in Chrome, choose File ▸ Open in Browser." = "Google Maps links you click in Chrome open here. To pause, click the extension’s button in Chrome’s toolbar. To see a map in Chrome, choose File ▸ Open in Browser.";
+"Chrome is connected to Maps Desktop" = "Chrome is connected to Maps Desktop";
+"The Chrome extension is set up" = "The Chrome extension is set up";
+"OK" = "OK";
+"Open in Chrome Web Store" = "Open in Chrome Web Store";

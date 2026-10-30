@@ -28,5 +28,80 @@
   },
   "optSource": {
     "message": "Maps Desktop and this extension on GitHub"
+  },
+  "missingTitle": {
+    "message": "Maps Desktop didn’t open"
+  },
+  "missingText": {
+    "message": "It doesn’t seem to be installed on this Mac. This extension opens Google Maps links in Maps Desktop, a free Google Maps app for Mac."
+  },
+  "download": {
+    "message": "Download Maps Desktop for Mac"
+  },
+  "installHow": {
+    "message": "Unzip it, move Maps Desktop to Applications and open it. The first time, macOS asks you to confirm: System Settings ▸ Privacy & Security ▸ Open Anyway."
+  },
+  "more": {
+    "message": "Details"
+  },
+  "missingPause": {
+    "message": "Don’t need the app? Click the extension button in Chrome’s toolbar to pause it, or remove the extension."
+  },
+  "welTitle": {
+    "message": "Open in Maps Desktop is installed"
+  },
+  "welLead": {
+    "message": "Google Maps links you click in Chrome will open in the Maps Desktop app for Mac instead of a browser tab. Chrome stays your browser."
+  },
+  "welStep1": {
+    "message": "Install Maps Desktop"
+  },
+  "welStep1Text": {
+    "message": "The free, open-source Google Maps app for Mac. Already have it? Go to step 2."
+  },
+  "welStep2": {
+    "message": "Connect Chrome to the app"
+  },
+  "welStep2Text": {
+    "message": "Click Connect. Chrome asks “Open Maps Desktop?” — tick “Always allow” and click Open. Maps Desktop opens and confirms the connection."
+  },
+  "connect": {
+    "message": "Connect"
+  },
+  "connecting": {
+    "message": "Opening Maps Desktop…"
+  },
+  "connected": {
+    "message": "✓ Connected. Map links from Chrome will open in Maps Desktop."
+  },
+  "connectCancelled": {
+    "message": "You clicked Cancel. Click Connect again and choose Open."
+  },
+  "connectMissing": {
+    "message": "Maps Desktop didn’t open. Install it (step 1), open it once and click Connect again."
+  },
+  "welStep3": {
+    "message": "That’s it"
+  },
+  "howClick": {
+    "message": "Click any Google Maps link in Chrome — in mail, chats, search results — and it opens in Maps Desktop."
+  },
+  "tryIt": {
+    "message": "Try it"
+  },
+  "howTab": {
+    "message": "The first time, the extension asks whether to close the Chrome tab after the map opens in the app. You can change that in the extension options."
+  },
+  "howPause": {
+    "message": "To pause or resume, click the extension button in Chrome’s toolbar (pin it from the puzzle-piece menu). “off” on the button means paused."
+  },
+  "howChrome": {
+    "message": "Want a map in Chrome after all? In Maps Desktop choose File ▸ Open in Browser — the extension leaves that tab alone."
+  },
+  "optHow": {
+    "message": "How it works and setup"
+  },
+  "optDownload": {
+    "message": "Download Maps Desktop for Mac"
   }
 }

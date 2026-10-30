@@ -9,26 +9,38 @@
          display: grid; place-content: center; text-align: center; color: GrayText; }
   h1 { font-size: 20px; font-weight: 600; color: CanvasText; margin: 0 0 8px; }
   a { color: #1a73e8; }
-  #ask { display: none; max-width: 420px; }
-  #ask p { color: CanvasText; margin: 0 0 16px; }
-  #ask small { display: block; margin-top: 14px; }
-  button { font: inherit; padding: 7px 16px; margin: 0 4px; border-radius: 8px; cursor: pointer;
-           border: 1px solid #1a73e8; background: none; color: #1a73e8; }
-  button.primary { background: #1a73e8; color: #fff; }
+  .view { max-width: 440px; }
+  .view p { margin: 0 0 16px; }
+  #ask p, #missing p { color: CanvasText; }
+  .view small { display: block; margin-top: 14px; }
+  img { margin-bottom: 12px; }
+  button, .button { display: inline-block; font: inherit; padding: 7px 16px; margin: 4px; border-radius: 8px;
+           cursor: pointer; border: 1px solid #1a73e8; background: none; color: #1a73e8; text-decoration: none; }
+  .primary { background: #1a73e8; color: #fff; }
 </style>
 </head>
 <body>
-  <div id="wait">
+  <div id="wait" class="view">
     <h1 data-msg="opening"></h1>
     <p><a id="here" href="#" data-msg="openHere"></a></p>
   </div>
-  <div id="ask">
+  <div id="ask" class="view" hidden>
     <h1 data-msg="opened"></h1>
     <p data-msg="askClose"></p>
     <button id="close" class="primary" data-msg="alwaysClose"></button>
     <button id="keep" data-msg="keepTab"></button>
     <small data-msg="changeLater"></small>
   </div>
+  <div id="missing" class="view" hidden>
+    <img src="icons/128.png" width="64" height="64" alt="">
+    <h1 data-msg="missingTitle"></h1>
+    <p data-msg="missingText"></p>
+    <a class="button primary" data-href="download" data-msg="download"></a>
+    <button id="here2" data-msg="openHere"></button>
+    <small><span data-msg="installHow"></span> <a data-href="installHelp" target="_blank" data-msg="more"></a></small>
+    <small data-msg="missingPause"></small>
+  </div>
+  <script src="common.js"></script>
   <script src="handoff.js"></script>
 </body>
 </html>

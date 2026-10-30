@@ -30,6 +30,11 @@ chrome.action.onClicked.addListener(async () => {
 chrome.runtime.onInstalled.addListener(showState);
 chrome.runtime.onStartup.addListener(showState);
 
+// Сразу после установки — страница «как это работает»: скачать приложение, подключить его к Chrome.
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === 'install') chrome.tabs.create({ url: 'welcome.html' });
+});
+
 // Последний открытый адрес каждой вкладки. tab.url для этого не годится: когда ссылку открывает
 // другая программа или ее вставляют в адресную строку, Chrome сразу показывает в нем новый адрес.
 // Хранится в storage.session — переживает перезапуск фонового скрипта, но не перезапуск Chrome.
