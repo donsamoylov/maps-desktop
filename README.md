@@ -27,7 +27,7 @@ Google has no official Google Maps app for Mac, and the website in a browser tab
 - 🌙 **Dark mode for Google Maps** — a dark theme for the whole interface and the map, with cool night-blue map colours. Photos, satellite view and Street View keep their real colours. Follows the macOS appearance automatically, or pick Light / Dark in the **Appearance** menu.
 - 🖐 **Trackpad gestures that make sense** — two-finger swipe pans the map like on a phone, pinch zooms, lists and panels scroll normally. In a browser, two-finger scroll only zooms Google Maps.
 - 🔗 **Open Google Maps links in the app** — `google.com/maps`, `maps.google.com`, `maps.app.goo.gl` short links and even Apple Maps links clicked in Chrome open in Maps Desktop, as do `comgooglemaps://` and `geo:` links from any app. Links to other sites from inside the map open in your usual browser.
-- 🧩 **Chrome extension** — that's what sends Chrome's map links to the app; your default browser stays the same.
+- 🧩 **Chrome extension** — sends Chrome's map links to the app (your default browser stays the same) and gives Google Maps in Chrome the same dark theme, on any computer.
 - 📍 **My Location works** — Maps Desktop asks macOS for location access and passes your position to Google Maps, so the “show my location” button works on a Mac.
 - 🔄 **Automatic updates** — new versions are downloaded from GitHub Releases and checked against a cryptographic signature before installing.
 - 🌐 **Your language** — the app follows the macOS language (English and Russian included); Google Maps itself uses your system language too.
@@ -49,7 +49,7 @@ Updates install themselves from then on; to check right away, choose **Maps Desk
 
 ### Open Google Maps links from Chrome
 
-The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same. Like the app, it's for Mac only: on Windows, Linux or ChromeOS it does nothing.
+The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same. It also gives Google Maps in Chrome the same dark theme as the app: it follows the system, or right-click the extension button ▸ **Google Maps theme** to keep it **Light** or **Dark**. Clicking the button only pauses or resumes opening links in the app. The dark theme works on any computer; opening links in the app needs a Mac.
 
 **[Install Open in Maps Desktop from the Chrome Web Store](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa)**
 
@@ -72,7 +72,7 @@ No. Google offers Google Maps on the web, iPhone and Android only. Maps Desktop 
 Install the [Open in Maps Desktop](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa) extension for Chrome — see above.
 
 **How do I get Google Maps dark mode on a Mac?**
-The Google Maps website has no dark mode on desktop. Maps Desktop adds one that switches together with macOS.
+The Google Maps website has no dark mode on desktop. Maps Desktop adds one that switches together with macOS, and the [Open in Maps Desktop](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa) extension adds the same theme to Google Maps in Chrome, on any computer.
 
 **Does it need a Google Maps API key?**
 No. It is the regular Google Maps website, so search, directions, Street View and your account work as usual.
@@ -99,7 +99,7 @@ Releases are built by GitHub Actions when a `v*` tag is pushed — see [`.github
 
 **Maps Desktop — Google Карты для Mac с темной темой.** Полноценные Google Карты в отдельном окне macOS: темная тема в холодных тонах, которая переключается вместе с системой; свайп двумя пальцами двигает карту, щипок масштабирует; ссылки на Google Карты из Chrome (через расширение), Telegram, почты и других приложений открываются прямо в приложении; работает «Где я»; обновления приходят сами. Приложение при первом запуске предлагает поставить расширение для Chrome, а расширение сразу после установки помогает скачать приложение и подключить его одной кнопкой. Язык интерфейса — как в системе.
 
-Приложение и расширение — только для Mac.
+Приложение — только для Mac. Расширение для Chrome на любом компьютере делает Google Карты темными, а на Mac еще и открывает ссылки в приложении.
 
 **Установка:** [скачайте Maps Desktop для Mac](https://github.com/donsamoylov/maps-desktop/releases/latest/download/MapsDesktop.zip), откройте архив и перенесите **Maps Desktop.app** в **Программы**. В первый раз macOS не даст открыть приложение от непроверенного разработчика: нажмите **Готово**, затем **Системные настройки ▸ Конфиденциальность и безопасность ▸ Все равно открыть**.
 

@@ -40,3 +40,12 @@ const openApp = (href, on) => {
   location.href = href;
   return () => finish('stopped');
 };
+
+// Приложение есть только для Mac: вне Mac страницы прячут все, что про него.
+const onMac = chrome.runtime.getPlatformInfo().then((p) => p.os === 'mac');
+
+// Выбор темы Google Карт в Chrome (настройка theme: auto | light | dark) — на странице приветствия и в настройках.
+const bindTheme = (select) => {
+  chrome.storage.local.get({ theme: 'auto' }).then(({ theme }) => { select.value = theme; });
+  select.onchange = () => chrome.storage.local.set({ theme: select.value });
+};

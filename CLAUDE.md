@@ -19,7 +19,8 @@ Mac-приложение для сайта Google Карт: Swift + AppKit + Web
 
 ## Как устроено
 
-- `Sources/DarkTheme.swift` — темная тема: интерфейс — инверсией `invert(0.9) hue-rotate(180deg)`, фото
+- `chrome-extension/dark-theme.js` — темная тема, один файл на приложение и расширение (`Sources/DarkTheme.swift`
+  берет его из своей копии расширения в бандле и вставляет в окно): интерфейс — инверсией `invert(0.9) hue-rotate(180deg)`, фото
   переворачиваются обратно. Холст карты стоит вне фильтра страницы: фильтр получают соседи цепочки
   предков холста (`gm-chain`, `gm-flt`; прозрачные static-обертки пропускаются, чтобы панели с z-index
   оставались над картой), поэтому цвет на холсте — ровно цвет на экране. Темную схему рисуют шейдеры
@@ -31,8 +32,9 @@ Mac-приложение для сайта Google Карт: Swift + AppKit + Web
   от macOS; щипок передается Google как прокрутка с Ctrl, как это делает Chrome. Сайту приложение
   представляется Chrome (`MapWindow.swift`): так у Google не моргают подписи.
 - `Sources/LocationBridge.swift` — геолокация страницы берется у macOS.
-- `chrome-extension/` — расширение «Open in Maps Desktop»: ссылки на карты из Chrome →
-  `mapsdesktop://open?url=…`. Лежит внутри приложения, при запуске копируется в
+- `chrome-extension/` — расширение «Open in Maps Desktop»: на Mac ссылки на карты из Chrome →
+  `mapsdesktop://open?url=…`; на любой системе — та же темная тема на www.google.com/maps (content scripts
+  `dark-theme.js` + `theme-page.js` в мире страницы, `theme-bridge.js` передает им настройку темы). Лежит внутри приложения, при запуске копируется в
   `~/Library/Application Support/Maps Desktop/Chrome Extension` (`Sources/ChromeExtension.swift`).
 - `store/` и `PRIVACY.md` — пакет для Chrome Web Store.
 

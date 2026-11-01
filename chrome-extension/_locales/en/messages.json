@@ -93,7 +93,7 @@
     "message": "The first time, the extension asks whether to close the Chrome tab after the map opens in the app. You can change that in the extension options."
   },
   "howPause": {
-    "message": "To pause or resume, click the extension button in Chrome’s toolbar (pin it from the puzzle-piece menu). “off” on the button means paused."
+    "message": "To pause or resume opening links in the app, click the extension button in Chrome’s toolbar (pin it from the puzzle-piece menu). “off” on the button means paused. The dark theme isn’t affected."
   },
   "howChrome": {
     "message": "Want a map in Chrome after all? In Maps Desktop choose File ▸ Open in Browser — the extension leaves that tab alone."
@@ -105,9 +105,42 @@
     "message": "Download Maps Desktop for Mac"
   },
   "notMac": {
-    "message": "Maps Desktop is a Mac app, and this extension works only in Chrome on a Mac. On this computer it does nothing and leaves Google Maps links in Chrome, so you can remove it."
+    "message": "Maps Desktop is a Mac app, so on this computer the extension doesn’t open links in it. It gives Google Maps in Chrome a dark theme."
   },
   "actionNotMac": {
-    "message": "Open in Maps Desktop works only on a Mac"
+    "message": "Dark mode for Google Maps: right-click for the theme. Opening links in the Maps Desktop app works only on a Mac."
+  },
+  "optTheme": {
+    "message": "Google Maps theme in Chrome:"
+  },
+  "themeAuto": {
+    "message": "Auto, as in the system"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "welTheme": {
+    "message": "Dark theme for Google Maps in Chrome"
+  },
+  "welThemeText": {
+    "message": "Google Maps in Chrome gets the same dark theme as the Maps Desktop app: the interface and the map, while photos, satellite view and Street View keep their colours."
+  },
+  "openMaps": {
+    "message": "Open Google Maps"
+  },
+  "menuTheme": {
+    "message": "Google Maps theme"
+  },
+  "actionOn": {
+    "message": "Opening map links in Maps Desktop: on. Click to pause; right-click for the Google Maps theme."
+  },
+  "actionOff": {
+    "message": "Opening map links in Maps Desktop: paused. Click to resume; right-click for the Google Maps theme."
+  },
+  "welThemeHow": {
+    "message": "By default the theme follows the system appearance. To keep Google Maps always light or always dark, right-click the extension button ▸ Google Maps theme."
   }
 }

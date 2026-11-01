@@ -4,17 +4,24 @@
 <meta charset="utf-8">
 <style>
   :root { color-scheme: light dark; }
+  [hidden] { display: none !important; }
   body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; margin: 16px; min-width: 360px; }
-  label { display: flex; gap: 8px; align-items: flex-start; }
+  label { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
   p { color: GrayText; margin: 12px 0 0; }
 </style>
 </head>
 <body>
   <p id="notMac" hidden data-msg="notMac" style="margin: 0 0 12px; color: CanvasText"></p>
-  <label><input type="checkbox" id="closeTab"><span data-msg="optClose"></span></label>
-  <p data-msg="optPause"></p>
+  <label><span data-msg="optTheme"></span>
+    <select id="theme">
+      <option value="auto" data-msg="themeAuto"></option>
+      <option value="light" data-msg="themeLight"></option>
+      <option value="dark" data-msg="themeDark"></option>
+    </select></label>
+  <label class="mac"><input type="checkbox" id="closeTab"><span data-msg="optClose"></span></label>
+  <p class="mac" data-msg="optPause"></p>
   <p><a href="welcome.html" target="_blank" data-msg="optHow"></a></p>
-  <p><a data-href="download" data-msg="optDownload"></a></p>
+  <p class="mac"><a data-href="download" data-msg="optDownload"></a></p>
   <p><a data-href="repo" target="_blank" data-msg="optSource"></a></p>
   <script src="common.js"></script>
   <script src="options.js"></script>

@@ -1,5 +1,6 @@
 // Перехватывает переходы на Google Карты и передает адрес приложению Maps Desktop
-// через его схему mapsdesktop://open?url=… . Кнопка расширения включает и выключает перехват.
+// через его схему mapsdesktop://open?url=… . Кнопка расширения включает и выключает только перехват;
+// тема Google Карт (dark-theme.js) выбирается в ее контекстном меню.
 
 const isMapsLink = (raw) => {
   let u;
@@ -16,8 +17,8 @@ const isMapsLink = (raw) => {
 
 const isEnabled = async () => (await chrome.storage.local.get({ enabled: true })).enabled;
 
-// Приложение есть только для Mac: на других системах расширение ничего не перехватывает, а кнопка
-// открывает страницу, где это сказано.
+// Приложение есть только для Mac: на других системах расширение ссылки не перехватывает (темная тема
+// Google Карт работает везде), а кнопка открывает страницу приветствия.
 const onMac = chrome.runtime.getPlatformInfo().then((p) => p.os === 'mac');
 const active = async () => (await onMac) && (await isEnabled());
 
@@ -30,7 +31,7 @@ const showState = async () => {
   const on = await isEnabled();
   chrome.action.setBadgeText({ text: on ? '' : 'off' });
   chrome.action.setBadgeBackgroundColor({ color: '#5f6368' });
-  chrome.action.setTitle({ title: `Open map links in Maps Desktop: ${on ? 'on' : 'off'}` });
+  chrome.action.setTitle({ title: chrome.i18n.getMessage(on ? 'actionOn' : 'actionOff') });
 };
 
 chrome.action.onClicked.addListener(async () => {
@@ -40,6 +41,27 @@ chrome.action.onClicked.addListener(async () => {
 });
 chrome.runtime.onInstalled.addListener(showState);
 chrome.runtime.onStartup.addListener(showState);
+
+// Тема Google Карт — правым кликом по кнопке расширения: Авто (как в системе) / Светлая / Темная.
+// Меню Chrome хранит сам, создаем его при установке и обновлении расширения.
+const themes = { auto: 'themeAuto', light: 'themeLight', dark: 'themeDark' };
+chrome.runtime.onInstalled.addListener(async () => {
+  const { theme } = await chrome.storage.local.get({ theme: 'auto' });
+  await chrome.contextMenus.removeAll();
+  chrome.contextMenus.create({ id: 'theme', title: chrome.i18n.getMessage('menuTheme'), contexts: ['action'] });
+  for (const [value, msg] of Object.entries(themes)) {
+    chrome.contextMenus.create({ id: `theme-${value}`, parentId: 'theme', type: 'radio', checked: value === theme,
+                                 title: chrome.i18n.getMessage(msg), contexts: ['action'] });
+  }
+});
+chrome.contextMenus.onClicked.addListener(({ menuItemId }) => {
+  if (menuItemId.startsWith('theme-')) chrome.storage.local.set({ theme: menuItemId.slice('theme-'.length) });
+});
+// Тему поменяли в настройках расширения — отметка в меню следует за ней.
+chrome.storage.onChanged.addListener((changes) => {
+  const theme = changes.theme?.newValue;
+  if (theme in themes) chrome.contextMenus.update(`theme-${theme}`, { checked: true }).catch(() => {});
+});
 
 // Сразу после установки — страница «как это работает»: скачать приложение, подключить его к Chrome.
 chrome.runtime.onInstalled.addListener(({ reason }) => {
