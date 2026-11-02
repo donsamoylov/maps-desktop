@@ -51,7 +51,7 @@ Maps Desktop is an independent project and is not affiliated with, endorsed by o
 
 **Graphics** (in `store/`):
 - Store icon 128×128: `chrome-extension/icons/128.png`
-- Screenshots 1280×800: `store/screenshot-1.png`, `store/screenshot-2.png`
+- Screenshots 1280×800: `store/screenshot-1.png` (dark theme), `store/screenshot-2.png` (gestures), `store/screenshot-3.png` (links)
 - Small promo tile 440×280: `store/promo-small.png`
 
 **Website:** https://github.com/donsamoylov/maps-desktop
