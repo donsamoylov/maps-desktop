@@ -40,7 +40,7 @@ enum ChromeExtension {
         guard UserDefaults.standard.string(forKey: stateKey) == nil else { return }   // уже подключено ссылкой
         let alert = NSAlert()
         alert.messageText = L("Open Google Maps links from Chrome in Maps Desktop?")
-        alert.informativeText = L("Chrome opens map links in a tab. The free “Open in Maps Desktop” extension sends them here instead, and Chrome stays your browser.\n\nClick Install, then “Add to Chrome” on the extension page and Connect on the page that opens next. Chrome asks to open Maps Desktop — tick “Always allow”.\n\nYou can do it later: Maps Desktop ▸ Install Chrome Extension…")
+        alert.informativeText = L("Chrome opens map links in a tab. The free Maps Desktop extension sends them here instead, and Chrome stays your browser.\n\nClick Install, then “Add to Chrome” on the extension page and Connect on the page that opens next. Chrome asks to open Maps Desktop — tick “Always allow”.\n\nYou can do it later: Maps Desktop ▸ Install Chrome Extension…")
         alert.addButton(withTitle: L("Install…"))
         alert.addButton(withTitle: L("Not Now"))
         if alert.runModal() == .alertFirstButtonReturn {

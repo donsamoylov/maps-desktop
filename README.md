@@ -43,15 +43,15 @@ Google has no official Google Maps app for Mac, and the website in a browser tab
    xattr -dr com.apple.quarantine "/Applications/Maps Desktop.app"
    ```
 4. Sign in to your Google account inside Maps Desktop to see saved places and history.
-5. Using Chrome? Accept the offer to add the **Open in Maps Desktop** extension, and Google Maps links you click in Chrome will open in the app ([details below](#open-google-maps-links-from-chrome)).
+5. Using Chrome? Accept the offer to add the **Maps Desktop** extension, and Google Maps links you click in Chrome will open in the app ([details below](#open-google-maps-links-from-chrome)).
 
 Updates install themselves from then on; to check right away, choose **Maps Desktop ▸ Check for Updates…**. Older versions are on the [Releases](../../releases) page.
 
 ### Open Google Maps links from Chrome
 
-The **Open in Maps Desktop** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same. It also gives Google Maps in Chrome the same dark theme as the app: it follows the system, or right-click the extension button ▸ **Google Maps theme** to keep it **Light** or **Dark**. Clicking the button only pauses or resumes opening links in the app. The dark theme works on any computer; opening links in the app needs a Mac.
+The **Maps Desktop: Dark Mode + Mac App with Gestures** extension hands Google Maps links you click in Chrome — in Gmail, Slack, Telegram Web, search results or links other apps open in Chrome — to the app. Your default browser stays the same. It also gives Google Maps in Chrome the same dark theme as the app: it follows the system, or right-click the extension button ▸ **Google Maps theme** to keep it **Light** or **Dark**. Clicking the button only pauses or resumes opening links in the app. The dark theme works on any computer; opening links in the app needs a Mac.
 
-**[Install Open in Maps Desktop from the Chrome Web Store](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa)**
+**[Install the Maps Desktop extension from the Chrome Web Store](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa)**
 
 How the app and the extension find each other:
 
@@ -69,10 +69,10 @@ The first time a map opens in the app, the extension asks whether to close the C
 No. Google offers Google Maps on the web, iPhone and Android only. Maps Desktop is an unofficial desktop app that shows the real Google Maps website.
 
 **How do I open Google Maps links in an app instead of a browser on Mac?**
-Install the [Open in Maps Desktop](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa) extension for Chrome — see above.
+Install the [Maps Desktop extension](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa) for Chrome — see above.
 
 **How do I get Google Maps dark mode on a Mac?**
-The Google Maps website has no dark mode on desktop. Maps Desktop adds one that switches together with macOS, and the [Open in Maps Desktop](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa) extension adds the same theme to Google Maps in Chrome, on any computer.
+The Google Maps website has no dark mode on desktop. Maps Desktop adds one that switches together with macOS, and the [Maps Desktop extension](https://chromewebstore.google.com/detail/open-in-maps-desktop/hnbhfnadfajjbilkkmpennlmlkbhjefa) adds the same theme to Google Maps in Chrome, on any computer.
 
 **Does it need a Google Maps API key?**
 No. It is the regular Google Maps website, so search, directions, Street View and your account work as usual.

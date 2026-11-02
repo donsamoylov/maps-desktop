@@ -1,26 +1,28 @@
-# Chrome Web Store listing — Open in Maps Desktop
+# Chrome Web Store listing — Maps Desktop: Dark Mode + Mac App with Gestures
 
 Everything to paste into the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 Upload package: `build/maps-desktop-chrome-extension.zip` (made by `tools/pack_extension.sh`, also attached to every GitHub release).
 
 ## Store listing
 
-**Name** (from the manifest): Open in Maps Desktop
+**Name** (from the manifest): Maps Desktop: Dark Mode + Mac App with Gestures
 
 **Summary** (≤132 chars, from the manifest):
-Dark mode for Google Maps in Chrome. On a Mac it also opens Google Maps links in the free Maps Desktop app.
+Dark mode for Google Maps in Chrome. On a Mac, map links open in the free Maps Desktop app with natural trackpad gestures.
 
 **Description:**
 
-Dark mode for Google Maps in Chrome — and, on a Mac, Google Maps links that open in a real app instead of yet another browser tab.
+Dark mode for Google Maps in Chrome — and, on a Mac, a real desktop app with natural trackpad gestures that opens your Google Maps links instead of yet another browser tab.
 
 🌙 DARK THEME FOR GOOGLE MAPS — on any computer
 Google Maps has no dark mode on the desktop. This extension gives Google Maps in Chrome the same dark theme as the Maps Desktop app: the side panel, menus and the map itself, in cool night-blue colours like Google Maps on iPhone. Photos, satellite view and Street View keep their real colours.
 ✔ Follows your system appearance, or right-click the extension button ▸ Google Maps theme to keep it Light or Dark
 ✔ Runs only on www.google.com/maps and changes only how the page looks
 
-🔗 OPEN MAP LINKS IN MAPS DESKTOP — on a Mac
-Maps Desktop is a free, open-source Google Maps app for macOS with a dark mode, natural trackpad gestures and its own window in the Dock. When you click a Google Maps link in Chrome — in Gmail, Slack, Telegram Web, a search result or a shared place — the extension hands it to Maps Desktop and the place, search or route opens there.
+🖐 DESKTOP APP WITH TRACKPAD GESTURES — on a Mac
+Maps Desktop is a free, open-source Google Maps app for macOS with its own window in the Dock, the same dark mode and natural trackpad gestures: a two-finger swipe pans the map like on a phone, a pinch zooms, and lists and panels scroll normally. In a browser, two-finger scroll only zooms Google Maps.
+
+When you click a Google Maps link in Chrome — in Gmail, Slack, Telegram Web, a search result or a shared place — the extension hands it to Maps Desktop and the place, search or route opens there.
 ✔ Works with all Google Maps links: google.com/maps, maps.google.com, maps.app.goo.gl short links, places, searches, directions and coordinates
 ✔ Apple Maps links (maps.apple.com) open as the same place in Google Maps
 ✔ Reload a Google Maps tab to send it to the app too

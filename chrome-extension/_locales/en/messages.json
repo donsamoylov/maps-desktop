@@ -48,7 +48,7 @@
     "message": "Don’t need the app? Click the extension button in Chrome’s toolbar to pause it, or remove the extension."
   },
   "welTitle": {
-    "message": "Open in Maps Desktop is installed"
+    "message": "The Maps Desktop extension is installed"
   },
   "welLead": {
     "message": "Google Maps links you click in Chrome will open in the Maps Desktop app for Mac instead of a browser tab. Chrome stays your browser."
