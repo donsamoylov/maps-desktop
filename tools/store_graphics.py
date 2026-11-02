@@ -135,8 +135,8 @@ def promo_small():
     d = ImageDraw.Draw(img)
     ic = icon(112)
     img.paste(ic, (164, 34), ic)
-    for text, y, size, weight, color in [("Maps Desktop", 166, 30, 760, TEXT),
-                                         ("Dark mode + Mac app with gestures", 210, 18, 500, MUTED)]:
+    for text, y, size, weight, color in [("Dark Maps", 166, 30, 760, TEXT),
+                                         ("by Maps Desktop · Mac app with gestures", 210, 18, 500, MUTED)]:
         f = font(size, weight)
         d.text(((440 - f.getlength(text)) / 2, y), text, font=f, fill=color)
     return img.convert("RGB")

@@ -2,7 +2,7 @@
 
 _Last updated: November 2, 2026_
 
-Maps Desktop (the Mac app) and Maps Desktop: Dark Mode + Mac App with Gestures (the Chrome extension) are open-source projects. Their full source code is published at <https://github.com/donsamoylov/maps-desktop>.
+Maps Desktop (the Mac app) and Dark Maps by Maps Desktop (the Chrome extension) are open-source projects. Their full source code is published at <https://github.com/donsamoylov/maps-desktop>.
 
 ## The Chrome extension
 

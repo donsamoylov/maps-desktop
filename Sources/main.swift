@@ -163,7 +163,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         controller?.applyTheme()
     }
 
-    /// Ссылки на карты из Chrome передает приложению расширение Maps Desktop.
+    /// Ссылки на карты из Chrome передает приложению расширение Dark Maps.
     @objc private func installExtension(_ sender: Any?) { ChromeExtension.install() }
 
     private static let repo = URL(string: "https://github.com/donsamoylov/maps-desktop")!

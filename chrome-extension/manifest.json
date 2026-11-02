@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Maps Desktop: Dark Mode + Mac App with Gestures",
-  "short_name": "Maps Desktop",
-  "version": "1.4.1",
+  "name": "Dark Maps by Maps Desktop",
+  "short_name": "Dark Maps",
+  "version": "1.4.2",
   "description": "Dark mode for Google Maps in Chrome. On a Mac, map links open in the free Maps Desktop app with natural trackpad gestures.",
   "default_locale": "en",
   "permissions": [

@@ -32,7 +32,7 @@ Mac-приложение для сайта Google Карт: Swift + AppKit + Web
   от macOS; щипок передается Google как прокрутка с Ctrl, как это делает Chrome. Сайту приложение
   представляется Chrome (`MapWindow.swift`): так у Google не моргают подписи.
 - `Sources/LocationBridge.swift` — геолокация страницы берется у macOS.
-- `chrome-extension/` — расширение «Maps Desktop: Dark Mode + Mac App with Gestures»: на Mac ссылки на карты из Chrome →
+- `chrome-extension/` — расширение «Dark Maps by Maps Desktop»: на Mac ссылки на карты из Chrome →
   `mapsdesktop://open?url=…`; на любой системе — та же темная тема на www.google.com/maps (content scripts
   `dark-theme.js` + `theme-page.js` в мире страницы, `theme-bridge.js` передает им настройку темы). Лежит внутри приложения, при запуске копируется в
   `~/Library/Application Support/Maps Desktop/Chrome Extension` (`Sources/ChromeExtension.swift`).

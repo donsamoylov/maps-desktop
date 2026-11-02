@@ -1,11 +1,11 @@
-# Chrome Web Store listing — Maps Desktop: Dark Mode + Mac App with Gestures
+# Chrome Web Store listing — Dark Maps by Maps Desktop
 
 Everything to paste into the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole).
 Upload package: `build/maps-desktop-chrome-extension.zip` (made by `tools/pack_extension.sh`, also attached to every GitHub release).
 
 ## Store listing
 
-**Name** (from the manifest): Maps Desktop: Dark Mode + Mac App with Gestures
+**Name** (from the manifest): Dark Maps by Maps Desktop
 
 **Summary** (≤132 chars, from the manifest):
 Dark mode for Google Maps in Chrome. On a Mac, map links open in the free Maps Desktop app with natural trackpad gestures.
