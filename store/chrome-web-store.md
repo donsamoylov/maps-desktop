@@ -64,7 +64,7 @@ Makes Google Maps better on the desktop: a dark theme for Google Maps in Chrome 
 
 **Permission justification:**
 - `webNavigation` — to notice when a tab starts navigating to a Google Maps or Apple Maps link, so that link can be passed to the Maps Desktop app before the page loads.
-- `tabs` — to read the addresses of tabs that were already open when the extension started (so a tab where the user is already working with Google Maps is left alone) and to redirect the link to the app.
+- `tabs` — to read the addresses of open tabs, so a tab where the user is already working with Google Maps is left alone; to send a map link to the app by redirecting its tab; and to close that tab afterwards if the user chose this option.
 - `contextMenus` — to show the Google Maps theme choice (Auto, Light, Dark) when you right-click the extension button.
 - `storage` — to remember the settings: whether opening links in the app is on, the Google Maps theme (Auto, Light, Dark) and whether to close the tab after a map opens in the app.
 - Host permission `https://www.google.com/maps*` (content scripts) — to apply the dark theme to Google Maps pages. The scripts run only on www.google.com/maps, change only how the page looks, and read or send no user data.
