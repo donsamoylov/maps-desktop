@@ -215,6 +215,7 @@
         return;
       }
       const cs = getComputedStyle(e);
+      if (cs.position === 'fixed' && !e.classList.contains('gm-fixed')) lift(e);
       const m = cs.backgroundColor.match(/rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/);
       // Полупрозрачный белый — это наша же перекраска темной подложки в стилях: тоже темная плашка.
       const repainted = m && m[1] === '255' && m[2] === '255' && m[3] === '255' && m[4] !== undefined && +m[4] >= 0.3;
@@ -304,6 +305,17 @@
         const rect = e.getBoundingClientRect();
         if (+r + +g + +b <= 60 && rect.width * rect.height >= big) patch(e, 'background-color', '#fff');
       }
+      // Затемнение под окном во весь экран — полупрозрачный черный фон (у «Поделиться» он в формате
+      // color(srgb 0 0 0 / 0.64)). Фильтр сделал бы из него светлую пелену — ставим белый той же
+      // прозрачности, после фильтра он снова темный. Только если фильтр над ним действительно есть.
+      const veil = cs.backgroundColor.match(/^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/)?.slice(1).map(Number) ||
+        cs.backgroundColor.match(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+) \/ ([\d.]+)\)$/)?.slice(1).map((v, i) => i < 3 ? v * 255 : +v);
+      const filtered = !document.documentElement.classList.contains('gm-split') || e.closest('.gm-flt');
+      if (veil && veil[0] + veil[1] + veil[2] <= 60 && veil[3] >= 0.2 && veil[3] < 1 && filtered &&
+          !e.closest('.gm-unflip') && !inPhoto) {
+        const rect = e.getBoundingClientRect();
+        if (rect.width * rect.height >= big) patch(e, 'background-color', `rgba(255, 255, 255, ${veil[3]})`);
+      }
     };
     const sweep = () => {
       if (!dark) return;
@@ -347,10 +359,28 @@
         /rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor) && cs.backgroundImage === 'none' &&
         cs.boxShadow === 'none' && cs.borderTopWidth === '0px' && cs.borderBottomWidth === '0px';
     };
+    // Окна поверх страницы (position: fixed — «Поделиться», «Отправить на телефон» и т.п.) фильтр предка
+    // ломает: элемент с фильтром становится для них рамкой вместо окна браузера, и диалог сжимается до
+    // этой рамки (у обертки диалогов Google она нулевой высоты — окна не видно, клик «ничего не делает»).
+    // Обертка получила фильтр, пока была пустой. Такое окно помечаем (gm-fixed) и фильтр ставим на него
+    // самого, а предки до него — обертки без фильтра. Только если все они прозрачные: подсказки кнопок
+    // тоже fixed, но сидят в панелях со своим фоном — без фильтра панель стала бы светлой.
+    const lift = e => {
+      const outer = e.parentElement?.closest('.gm-flt');
+      if (!outer) return;
+      for (let p = e.parentElement; ; p = p.parentElement) {
+        if (!wrapper(p)) return;
+        if (p === outer) break;
+      }
+      e.classList.add('gm-fixed');
+      outer.querySelectorAll('.gm-flt, .gm-wrap').forEach(x => x.classList.remove('gm-flt', 'gm-wrap'));
+      outer.classList.remove('gm-flt');
+      target(outer);
+    };
     const target = e => {
       if (e.classList.contains('gm-chain') || e.classList.contains('gm-map') || e.classList.contains('gm-flt')) return;
       if (/^(SCRIPT|STYLE|LINK|META|NOSCRIPT|TEMPLATE)$/.test(e.tagName)) return;
-      if (wrapper(e)) { e.classList.add('gm-wrap'); for (const c of e.children) target(c); }
+      if (wrapper(e) || e.querySelector('.gm-fixed')) { e.classList.add('gm-wrap'); for (const c of e.children) target(c); }
       else e.classList.add('gm-flt');
     };
     // Google перестраивает панели (выход из Street View и т.п.): обертка, которая была прозрачной, могла
@@ -358,7 +388,7 @@
     const refilter = () => {
       if (!mapCanvas) return;
       for (const w of document.querySelectorAll('.gm-wrap')) {
-        if (wrapper(w) || w.querySelector('.gm-chain')) continue;
+        if (wrapper(w) || w.querySelector('.gm-chain, .gm-fixed')) continue;
         w.querySelectorAll('.gm-flt, .gm-wrap').forEach(e => e.classList.remove('gm-flt', 'gm-wrap'));
         w.classList.replace('gm-wrap', 'gm-flt');
       }
